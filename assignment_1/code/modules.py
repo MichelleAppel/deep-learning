@@ -219,10 +219,9 @@ class SoftMaxModule(object):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    y = np.exp(self.x) # Exponent
-    dx = y / y.sum() # Gradient of softmax
-    # if i==j: # If i==j
-    #   dx =- dx**2 # Substract term
+    dx = self.x - self.x**2 # if i==j
+    # dx_ij = -self.x*self.x # if i!=j TODO
+
     dx = dx * dout # Elementwise multiplication with gradients of previous module
     #######################
     # END OF YOUR CODE    #
@@ -245,7 +244,7 @@ class CrossEntropyModule(object):
     Returns:
       out: cross entropy loss
     
-    TODO:
+    Done:
     Implement forward pass of the module. 
     """
 
@@ -269,7 +268,7 @@ class CrossEntropyModule(object):
     Returns:
       dx: gradient of the loss with the respect to the input x.
     
-    TODO:
+    Done:
     Implement backward pass of the module.
     """
 

@@ -36,7 +36,14 @@ class MLP(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    self.n_inputs = n_inputs
+    self.n_hidden = n_hidden
+    self.n_classes = n_classes
+
+    self.linear_layer = LinearModule(n_inputs, n_hidden[0])
+    self.ReLU_layer = ReLUModule()
+    self.softmax_layer = SoftMaxModule()
+    self.crossentropy_layer = CrossEntropyModule()
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -58,7 +65,10 @@ class MLP(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    out = self.linear_layer.forward(x)
+    out = self.ReLU_layer.forward(out)
+    out = self.linear_layer.forward(out)
+    out = self.softmax_layer.forward(out)
     ########################
     # END OF YOUR CODE    #
     #######################
