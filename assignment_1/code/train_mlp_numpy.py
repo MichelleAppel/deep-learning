@@ -44,11 +44,11 @@ def accuracy(predictions, targets):
   Implement accuracy computation.
   """
 
-  ########################
+  #######################
   # PUT YOUR CODE HERE  #
   #######################
   accuracy = 1-0.5*np.sum(~np.equal(predictions, targets))/np.shape(predictions)[0]
-  ########################
+  #######################
   # END OF YOUR CODE    #
   #######################
 
@@ -74,7 +74,7 @@ def train():
   else:
     dnn_hidden_units = []
 
-  ########################
+  #######################
   # PUT YOUR CODE HERE  #
   #######################
   X_train_raw, Y_train_raw, X_test_raw, Y_test_raw = cifar10_utils.load_cifar10(DATA_DIR_DEFAULT)
@@ -91,16 +91,16 @@ def train():
     average_input = np.reshape(average_input, (np.size(average_input),)) # Flatten
     average_label = np.average(batch_output, axis=0) # Make average label
 
-    prediction = mlp.forward(average_input)
-    loss, dloss = mlp.loss(prediction, average_label)
-    backward = mlp.backward(dloss)
+    prediction = mlp.forward(average_input) # The predicted labels
+    loss, dloss = mlp.loss(prediction, average_label) # Loss
+    backward = mlp.backward(dloss) # Perform backward pass
 
     for layer in mlp.layers:
       if layer.__class__.__name__ == 'LinearModule':
         layer.params['weight'] = (layer.params['weight'].T - LEARNING_RATE_DEFAULT*layer.grads['weight']).T # Update weights
         layer.params['bias'] -= LEARNING_RATE_DEFAULT*layer.grads['bias'] # Update bias
 
-  ########################
+  #######################
   # END OF YOUR CODE    #
   #######################
 
