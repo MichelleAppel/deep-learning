@@ -19,6 +19,7 @@ LEARNING_RATE_DEFAULT = 2e-3
 MAX_STEPS_DEFAULT = 1500
 BATCH_SIZE_DEFAULT = 200
 EVAL_FREQ_DEFAULT = 100
+NUM_CLASSES = 10
 
 # Directory in which cifar data is saved
 DATA_DIR_DEFAULT = './cifar10/cifar-10-batches-py'
@@ -39,14 +40,14 @@ def accuracy(predictions, targets):
     accuracy: scalar float, the accuracy of predictions,
               i.e. the average correct predictions over the whole batch
   
-  TODO:
+  Done:
   Implement accuracy computation.
   """
 
   ########################
   # PUT YOUR CODE HERE  #
   #######################
-  accuracy = 0.5*np.sum(np.equal(predictions, targets))/np.size(predictions)
+  accuracy = 1-0.5*np.sum(~np.equal(predictions, targets))/np.shape(predictions)[0]
   ########################
   # END OF YOUR CODE    #
   #######################
@@ -76,7 +77,29 @@ def train():
   ########################
   # PUT YOUR CODE HERE  #
   #######################
-  raise NotImplementedError
+  X_train_raw, Y_train_raw, X_test_raw, Y_test_raw = cifar10_utils.load_cifar10(DATA_DIR_DEFAULT)
+  X_train, Y_train, X_test, Y_test = cifar10_utils.preprocess_cifar10_data(X_train_raw, Y_train_raw, X_test_raw, Y_test_raw) # Load and preprocess dataset
+
+  mlp = MLP(np.size(X_train[0]), dnn_hidden_units, NUM_CLASSES) # Initialize MLP
+
+  for i in range(BATCH_SIZE_DEFAULT % np.shape(X_train)[0]): # Loop trough batches
+    batch_input = X_train[i*BATCH_SIZE_DEFAULT:i*BATCH_SIZE_DEFAULT+BATCH_SIZE_DEFAULT] # Get batch input
+    batch_output = Y_train[i*BATCH_SIZE_DEFAULT:i*BATCH_SIZE_DEFAULT+BATCH_SIZE_DEFAULT] # Get batch output
+    batch_output = cifar10_utils.dense_to_one_hot(batch_output, NUM_CLASSES) # Make one-hot vector
+
+    average_input = np.average(batch_input, axis=0) # Make average input
+    average_input = np.reshape(average_input, (np.size(average_input),)) # Flatten
+    average_label = np.average(batch_output, axis=0) # Make average label
+
+    prediction = mlp.forward(average_input)
+    loss, dloss = mlp.loss(prediction, average_label)
+    backward = mlp.backward(dloss)
+
+    for layer in mlp.layers:
+      if layer.__class__.__name__ == 'LinearModule':
+        layer.params['weight'] = (layer.params['weight'].T - LEARNING_RATE_DEFAULT*layer.grads['weight']).T # Update weights
+        layer.params['bias'] -= LEARNING_RATE_DEFAULT*layer.grads['bias'] # Update bias
+
   ########################
   # END OF YOUR CODE    #
   #######################
