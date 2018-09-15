@@ -91,9 +91,6 @@ class LinearModule(object):
     # PUT YOUR CODE HERE  #
     #######################
     dx = self.params['weight'] # Gradient with respect to input is weights
-    # print('dx', dx)
-    # print('dout', dout)
-
     dx = dout * dx   # Multiply elementwise with gradients of previous module
 
     self.grads['weight'] = self.x # Gradient of weight is input
@@ -161,7 +158,7 @@ class ReLUModule(object):
     #######################
     dx = np.zeros(np.shape(self.x)) # Gradient is 0 when input < 0
     dx[np.greater_equal(self.x, 0)] = 1 # Gradient is 1 when input >= 0
-    dx = np.sum(dout, axis=1) * dx # Elementwise multiplication with previous gradients
+    dx = np.sum(np.reshape(dout, (np.shape(self.x)[0], -1)), axis=1) * dx # Elementwise multiplication with previous gradients
     #######################
     # END OF YOUR CODE    #
     #######################    

@@ -40,20 +40,21 @@ class MLP(object):
     self.n_hidden = n_hidden
     self.n_classes = n_classes
 
-    self.hidden_layers = []
+    self.layers = []
 
     if len(n_hidden) == 0:
-      self.linear_layer = LinearModule(n_inputs, n_classes)
-      self.crossentropy_layer = CrossEntropyModule()
+      self.layers.append(LinearModule(n_inputs, n_classes))
     else:
-      self.linear_layer = LinearModule(n_inputs, n_hidden[0])
+      self.layers.append(LinearModule(n_inputs, n_hidden[0]))
+      self.layers.append(ReLUModule())
 
       for i in range(1,len(n_hidden)):
-        self.hidden_layers.append(LinearModule(self.n_hidden[i-1], self.n_hidden[i]))
-      self.hidden_layers.append((LinearModule(self.n_hidden[-1], self.n_classes)))
+        self.layers.append(LinearModule(self.n_hidden[i-1], self.n_hidden[i]))
+        self.layers.append(ReLUModule())
+      self.layers.append((LinearModule(self.n_hidden[-1], self.n_classes)))
       
-    self.ReLU_layer = ReLUModule()
-    self.softmax_layer = SoftMaxModule()
+    self.layers.append(SoftMaxModule())
+
     self.crossentropy_layer = CrossEntropyModule()
     ########################
     # END OF YOUR CODE    #
@@ -76,10 +77,9 @@ class MLP(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    out = self.linear_layer.forward(x)
-    for hidden_layer in self.hidden_layers:
-      out = hidden_layer.forward(self.ReLU_layer.forward(out))
-    out = self.softmax_layer.forward(out)
+    out = x
+    for layer in self.layers:
+      out = layer.forward(out)
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -107,11 +107,8 @@ class MLP(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    dout = self.softmax_layer.backward(dout)
-    for hidden_layer in reversed(self.hidden_layers):
-      dout = hidden_layer.backward(dout)
-      dout = self.ReLU_layer.backward(dout)
-    dout = self.linear_layer.backward(dout)
+    for layer in reversed(self.layers):
+      dout = layer.backward(dout)
     ########################
     # END OF YOUR CODE    #
     #######################
