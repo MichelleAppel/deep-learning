@@ -32,7 +32,7 @@ class LinearModule(object):
     mu, sigma = 0, 0.0001 # Mean and standard deviation
 
     weight = np.random.normal(mu, sigma, (in_features, out_features)) # Initialize random weights
-    bias = np.zeros((1, out_features)) # Initialize bias with 0
+    bias = np.zeros( out_features) # Initialize bias with 0
 
     grads = np.zeros((in_features, out_features)) # Initialize gradients with 0
 
@@ -63,6 +63,13 @@ class LinearModule(object):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
+    # print('weight', np.shape(self.params['weight']))
+    # print('in    ', np.shape(x))
+    # print('in_n  ', self.in_features)
+    # print('out   ', self.out_features)
+    # print('bias  ', self.params['bias'])
+    # print('result', np.shape(np.dot(x, self.params['weight'])))
+
     out = np.dot(x, self.params['weight']) + self.params['bias'] # Output = Weights * input + bias
 
     self.x = x # Store input
@@ -137,6 +144,7 @@ class ReLUModule(object):
     # END OF YOUR CODE    #
     #######################
 
+    
     return out
 
   def backward(self, dout):

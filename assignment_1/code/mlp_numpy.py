@@ -29,7 +29,7 @@ class MLP(object):
                  This number is required in order to specify the
                  output dimensions of the MLP
     
-    TODO:
+    Done:
     Implement initialization of the network.
     """
 
@@ -40,7 +40,18 @@ class MLP(object):
     self.n_hidden = n_hidden
     self.n_classes = n_classes
 
-    self.linear_layer = LinearModule(n_inputs, n_hidden[0])
+    self.hidden_layers = []
+
+    if len(n_hidden) == 0:
+      self.linear_layer = LinearModule(n_inputs, n_classes)
+      self.crossentropy_layer = CrossEntropyModule()
+    else:
+      self.linear_layer = LinearModule(n_inputs, n_hidden[0])
+
+      for i in range(1,len(n_hidden)):
+        self.hidden_layers.append(LinearModule(self.n_hidden[i-1], self.n_hidden[i]))
+      self.hidden_layers.append((LinearModule(self.n_hidden[-1], self.n_classes)))
+      
     self.ReLU_layer = ReLUModule()
     self.softmax_layer = SoftMaxModule()
     self.crossentropy_layer = CrossEntropyModule()
@@ -58,7 +69,7 @@ class MLP(object):
     Returns:
       out: outputs of the network
     
-    TODO:
+    Done:
     Implement forward pass of the network.
     """
 
@@ -66,8 +77,9 @@ class MLP(object):
     # PUT YOUR CODE HERE  #
     #######################
     out = self.linear_layer.forward(x)
-    out = self.ReLU_layer.forward(out)
-    out = self.linear_layer.forward(out)
+    for hidden_layer in self.hidden_layers:
+      print(hidden_layer.in_features, hidden_layer.out_features)
+      out = hidden_layer.forward(self.ReLU_layer.forward(out))
     out = self.softmax_layer.forward(out)
     ########################
     # END OF YOUR CODE    #
