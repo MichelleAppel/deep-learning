@@ -46,7 +46,7 @@ def accuracy(predictions, targets):
   ########################
   # PUT YOUR CODE HERE  #
   #######################
-  raise NotImplementedError
+  accuracy = 0.5*np.sum(np.equal(predictions, targets))/np.size(predictions)
   ########################
   # END OF YOUR CODE    #
   #######################
