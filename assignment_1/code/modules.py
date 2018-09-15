@@ -91,7 +91,10 @@ class LinearModule(object):
     # PUT YOUR CODE HERE  #
     #######################
     dx = self.params['weight'] # Gradient with respect to input is weights
-    dx = dx * dout # Multiply elementwise with gradients of previous module
+    # print('dx', dx)
+    # print('dout', dout)
+
+    dx = dout * dx   # Multiply elementwise with gradients of previous module
 
     self.grads['weight'] = self.x # Gradient of weight is input
     self.grads['bias'] = np.ones(self.out_features) # Gradient of bias equals one
@@ -158,7 +161,7 @@ class ReLUModule(object):
     #######################
     dx = np.zeros(np.shape(self.x)) # Gradient is 0 when input < 0
     dx[np.greater_equal(self.x, 0)] = 1 # Gradient is 1 when input >= 0
-    dx = dx * dout # Elementwise multiplication with previous gradients
+    dx = np.sum(dout, axis=1) * dx # Elementwise multiplication with previous gradients
     #######################
     # END OF YOUR CODE    #
     #######################    

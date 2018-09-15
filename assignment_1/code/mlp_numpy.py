@@ -78,7 +78,6 @@ class MLP(object):
     #######################
     out = self.linear_layer.forward(x)
     for hidden_layer in self.hidden_layers:
-      print(hidden_layer.in_features, hidden_layer.out_features)
       out = hidden_layer.forward(self.ReLU_layer.forward(out))
     out = self.softmax_layer.forward(out)
     ########################
@@ -87,6 +86,13 @@ class MLP(object):
 
     return out
 
+  def loss(self, out, labels):
+
+    loss = self.crossentropy_layer.forward(out, labels)
+    dloss = self.crossentropy_layer.backward(out, labels)
+
+    return loss, dloss
+
   def backward(self, dout):
     """
     Performs backward pass given the gradients of the loss. 
@@ -94,16 +100,20 @@ class MLP(object):
     Args:
       dout: gradients of the loss
     
-    TODO:
+    Done:
     Implement backward pass of the network.
     """
     
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    dout = self.softmax_layer.backward(dout)
+    for hidden_layer in reversed(self.hidden_layers):
+      dout = hidden_layer.backward(dout)
+      dout = self.ReLU_layer.backward(dout)
+    dout = self.linear_layer.backward(dout)
     ########################
     # END OF YOUR CODE    #
     #######################
 
-    return
+    return dout
