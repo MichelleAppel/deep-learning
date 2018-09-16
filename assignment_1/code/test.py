@@ -1,3 +1,8 @@
-from train_mlp_numpy import *
+from mlp_pytorch import *
+import numpy as np
+import torch
 
-train()
+mlp = MLP(3,[3,3],3)
+
+out = mlp.forward(torch.rand(3))
+print(out)

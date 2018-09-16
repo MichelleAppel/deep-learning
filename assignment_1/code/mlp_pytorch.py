@@ -6,6 +6,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 class MLP(nn.Module):
   """
   This class implements a Multi-layer Perceptron in PyTorch.
@@ -27,15 +31,27 @@ class MLP(nn.Module):
                  This number is required in order to specify the
                  output dimensions of the MLP
     
-    TODO:
+    Done:
     Implement initialization of the network.
     """
 
-    ########################
+    #######################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
-    ########################
+    self.linear_layers = []
+
+    if len(n_hidden) == 0: 
+      self.linear_layers.append(nn.Linear(n_inputs, n_classes))
+    else:
+      for i in range(len(n_hidden)):
+        if i == 0:
+          n_in = n_inputs
+        else:
+          n_in = n_hidden[i]
+        self.linear_layers.append(nn.Linear(n_in, n_hidden[i]))
+      self.linear_layers.append(nn.Linear(n_hidden[-1], n_classes))
+
+    #######################
     # END OF YOUR CODE    #
     #######################
 
@@ -49,15 +65,18 @@ class MLP(nn.Module):
     Returns:
       out: outputs of the network
     
-    TODO:
+    Done:
     Implement forward pass of the network.
     """
 
-    ########################
+    #######################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
-    ########################
+    out = x
+    for linear_layer in self.linear_layers[:-1]:
+      out = F.relu(linear_layer.forward(out))
+    out = F.softmax(self.linear_layers[-1].forward(out), dim=0)
+    #######################
     # END OF YOUR CODE    #
     #######################
 
