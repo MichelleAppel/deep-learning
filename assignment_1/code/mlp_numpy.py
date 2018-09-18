@@ -57,6 +57,7 @@ class MLP(object):
 
     # for layer in self.layers:
       # print(layer)
+    self.crossentropy_layer = CrossEntropyModule()
     #######################
     # END OF YOUR CODE    #
     #######################

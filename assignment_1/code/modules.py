@@ -63,7 +63,7 @@ class LinearModule(object):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    out = np.dot(x, self.params['weight']) + self.params['bias'] # Output = Weights * input + bias
+    out = x @ self.params['weight'] + self.params['bias'] # Output = Weights * input + bias
 
     self.x = x # Store input
     self.out = out # Store output
@@ -91,9 +91,11 @@ class LinearModule(object):
     # PUT YOUR CODE HERE  #
     #######################
     dx = self.params['weight'] # Gradient with respect to input is weights
-    dx = dx @ dout.T   # Multiply elementwise with gradients of previous module
+    dx = dx @ dout   # Multiply with gradients of previous module
 
-    self.grads['weight'] = self.x # Gradient of weight is input
+    print('xshape', self.x.shape)
+    print('ditshape', self.grads['weight'].shape)
+    self.grads['weight'] = np.sum(self.x, axis=0) # Gradient of weight is input
     self.grads['bias'] = np.ones(self.out_features) # Gradient of bias equals one
     #######################
     # END OF YOUR CODE    #
@@ -158,7 +160,9 @@ class ReLUModule(object):
     #######################
     dx = np.zeros(np.shape(self.x)) # Gradient is 0 when input < 0
     dx[np.greater_equal(self.x, 0)] = 1 # Gradient is 1 when input >= 0
-    dx = np.sum(np.reshape(dout, (np.shape(self.x)[0], -1)), axis=1) * dx # Elementwise multiplication with previous gradients
+
+    dx = np.sum(np.reshape(dout, (np.shape(self.x)[0], -1)), axis=1)
+    dx = dout * dx
     #######################
     # END OF YOUR CODE    #
     #######################    
@@ -218,11 +222,8 @@ class SoftMaxModule(object):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    # print('O00000KAY')
-    dx = np.diag(self.out) - self.out @ self.out.T
-    print(dx)
-
-    # dx = dout @ dx
+    dx = np.diag(self.out) - self.out.T @ self.out
+    dx = dout @ dx
     #######################
     # END OF YOUR CODE    #
     #######################

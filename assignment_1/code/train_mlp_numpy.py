@@ -88,17 +88,17 @@ def train():
     batch_input = X_train[i*BATCH_SIZE_DEFAULT:i*BATCH_SIZE_DEFAULT+BATCH_SIZE_DEFAULT] # Get batch input
     batch_input = np.reshape(batch_input, (BATCH_SIZE_DEFAULT, np.size(batch_input[0]))) # Reshape
     batch_output = Y_train[i*BATCH_SIZE_DEFAULT:i*BATCH_SIZE_DEFAULT+BATCH_SIZE_DEFAULT] # Get batch output
-    # batch_output = cifar10_utils.dense_to_one_hot(batch_output, NUM_CLASSES) # Make one-hot vector
+    batch_output = cifar10_utils.dense_to_one_hot(batch_output, NUM_CLASSES) # Make one-hot vector
 
     prediction = mlp.forward(batch_input) # The predicted labels
-    print(prediction)
-    break
-    
     loss, dloss = mlp.loss(prediction, batch_output) # Loss
+    print('loss', loss)
     backward = mlp.backward(dloss) # Perform backward pass
 
     for layer in mlp.layers:
       if layer.__class__.__name__ == 'LinearModule':
+        print('params', layer.params['weight'].shape)
+        print('grads', layer.grads['weight'].shape)
         layer.params['weight'] -= LEARNING_RATE_DEFAULT*layer.grads['weight'] # Update weights
         layer.params['bias'] -= LEARNING_RATE_DEFAULT*layer.grads['bias'] # Update bias
 
