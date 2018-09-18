@@ -51,12 +51,10 @@ def accuracy(predictions, targets):
 	#######################
 	# PUT YOUR CODE HERE  #
 	#######################
-	pred = torch.max(predictions, 1)[1].long()
-	accuracy = np.count_nonzero((pred==targets).data.numpy()) / float(np.shape(predictions)[0])
-	# max_index_predictions = predictions.max(dim = 1)[0]
-	# max_index_targets = targets.max(dim = 1)[0]
+	max_index_predictions = predictions.max(dim = 1)[0]
+	max_index_targets = targets.max(dim = 1)[0]
 
-	# accuracy = float((max_index_predictions == max_index_targets).sum())/max_index_targets.size()[0]
+	accuracy = float((max_index_predictions == max_index_targets).sum())/max_index_targets.size()[0]
 	#######################
 	# END OF YOUR CODE    #
 	#######################
@@ -86,93 +84,37 @@ def train():
 	#######################
 	# PUT YOUR CODE HERE  #
 	#######################
-	# X_train_raw, Y_train_raw, X_test_raw, Y_test_raw = cifar10_utils.load_cifar10(DATA_DIR_DEFAULT)
-	# X_train, Y_train, X_test, Y_test = cifar10_utils.preprocess_cifar10_data(X_train_raw, Y_train_raw, X_test_raw, Y_test_raw) # Load and preprocess dataset
+	X_train_raw, Y_train_raw, X_test_raw, Y_test_raw = cifar10_utils.load_cifar10(DATA_DIR_DEFAULT)
+	X_train, Y_train, X_test, Y_test = cifar10_utils.preprocess_cifar10_data(X_train_raw, Y_train_raw, X_test_raw, Y_test_raw) # Load and preprocess dataset
 
-	# classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+	classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
-	# mlp = MLP(np.size(X_train[0]), dnn_hidden_units, len(classes)) # Initialize MLP
+	mlp = MLP(np.size(X_train[0]), dnn_hidden_units, len(classes)) # Initialize MLP
 
-	# optimizer = optim.SGD(mlp.parameters(), lr=LEARNING_RATE_DEFAULT, momentum=0.9)
-	# criterion = nn.CrossEntropyLoss()
-
-	# for epoch in range(1):
-
-	# 	for i in range(BATCH_SIZE_DEFAULT % np.shape(X_train)[0]): # Loop trough batches
-	# 		batch_input = X_train[i*BATCH_SIZE_DEFAULT:i*BATCH_SIZE_DEFAULT+BATCH_SIZE_DEFAULT] # Get batch input
-	# 		batch_input = np.reshape(batch_input, (BATCH_SIZE_DEFAULT, np.size(batch_input[0]))) # Reshape
-	# 		batch_output = Y_train[i*BATCH_SIZE_DEFAULT:i*BATCH_SIZE_DEFAULT+BATCH_SIZE_DEFAULT] # Get batch output
-
-	# 		batch_input = torch.from_numpy(batch_input) # Convert to tensor
-	# 		batch_output = torch.from_numpy(batch_output).long() # Convert to tensor
-
-	# 		# # zero the parameter gradients
-	# 		optimizer.zero_grad()
-
-	# 		# forward + backward + optimize
-	# 		outputs = mlp(batch_input)
-	# 		loss = criterion(outputs, batch_output)
-	# 		loss.backward()
-	# 		optimizer.step()
-
-	# 		print('L 0 sssss', loss)
-	# print('Finished Training')
-
-	INPUT_SIZE_DEFAULT = 3 * 32 * 32
-	OUTPUT_SIZE_DEFAULT = 10
-
-	# read data
-	cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
-	
-	def read_data_batch(mode='train', size=BATCH_SIZE_DEFAULT):
-		inputs, labels = cifar10[mode].next_batch(size)
-		inputs = Variable(torch.from_numpy(inputs), requires_grad=True)
-		inputs = inputs.contiguous().view(-1, INPUT_SIZE_DEFAULT)
-		labels = Variable(torch.from_numpy(labels).long())		
-		labels = torch.max(labels, 1)[1]
-		return inputs, labels
-		
-	def evaluate(mode='train'):
-		inputs, labels = read_data_batch(mode, 10)
-		outputs = net(inputs)
-		loss = criterion(outputs, labels)
-		acc = accuracy(outputs, labels)
-		return loss, acc
-	
-	# init network, criterion, optimizer
-	net = MLP(INPUT_SIZE_DEFAULT, dnn_hidden_units, OUTPUT_SIZE_DEFAULT) 
+	optimizer = optim.SGD(mlp.parameters(), lr=LEARNING_RATE_DEFAULT, momentum=0.9)
 	criterion = nn.CrossEntropyLoss()
-	optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE_DEFAULT)
-	
-	# train loop
-	train_acc = []
-	test_acc = []
-	train_loss = []
-	test_loss = []
-	for step in range(MAX_STEPS_DEFAULT):
-		# get the input images and labels in correct format
-		inputs, labels = read_data_batch()
-		optimizer.zero_grad() # clear the previous gradients
-		outputs = net(inputs) # forward pass
-		loss = criterion(outputs, labels) # calculate loss		
-		loss.backward() # compute new gradients
-		optimizer.step() # update weights
-		
-		# evaluate on test set
-		if step > 0 and step % 99 == 0:
-			train_l, train_a = evaluate('train')
-			test_l, test_a = evaluate('test')
-			train_acc.append(train_a)
-			test_acc.append(test_a)
-			train_loss.append(train_l)
-			test_loss.append(test_l)
-			print("Train loss", np.round(train_l.data[0], 2), 
-				"   Train acc", np.round(train_a, 2),
-				"   Test loss", np.round(test_l.data[0], 2),
-				"   Test acc", np.round(test_a, 2))
 
-	print('Finished training :-)')
+	for epoch in range(1):
 
+		for i in range(BATCH_SIZE_DEFAULT % np.shape(X_train)[0]): # Loop trough batches
+			batch_input = X_train[i*BATCH_SIZE_DEFAULT:i*BATCH_SIZE_DEFAULT+BATCH_SIZE_DEFAULT] # Get batch input
+			batch_input = np.reshape(batch_input, (BATCH_SIZE_DEFAULT, np.size(batch_input[0]))) # Reshape
+			batch_output = Y_train[i*BATCH_SIZE_DEFAULT:i*BATCH_SIZE_DEFAULT+BATCH_SIZE_DEFAULT] # Get batch output
+
+			batch_input = torch.from_numpy(batch_input) # Convert to tensor
+			batch_output = torch.from_numpy(batch_output).long() # Convert to tensor
+
+			# # zero the parameter gradients
+			optimizer.zero_grad()
+
+			# forward + backward + optimize
+			outputs = mlp(batch_input)
+			loss = criterion(outputs, batch_output)
+			loss.backward()
+			optimizer.step()
+
+			print('L 0 sssss', loss)
+	print('Finished Training')
 	#######################
 	# END OF YOUR CODE    #
 	#######################
