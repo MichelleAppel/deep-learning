@@ -12,11 +12,11 @@ import os
 from mlp_pytorch import MLP
 import cifar10_utils
 import torch
-import torch.optim as optim
 import torch.nn as nn
-import torchvision.transforms as transforms
-import torchvision
+import torch.nn.functional as F
+import torch.optim as optim
 from torch.autograd import Variable
+
 
 # Default constants
 DNN_HIDDEN_UNITS_DEFAULT = '100'
@@ -24,6 +24,9 @@ LEARNING_RATE_DEFAULT = 2e-3
 MAX_STEPS_DEFAULT = 1500
 BATCH_SIZE_DEFAULT = 200
 EVAL_FREQ_DEFAULT = 100
+
+INPUT_SIZE_DEFAULT = 3*32*32
+OUTPUT_SIZE_DEFAULT = 10
 
 # Directory in which cifar data is saved
 DATA_DIR_DEFAULT = './cifar10/cifar-10-batches-py'
@@ -36,29 +39,25 @@ def accuracy(predictions, targets):
 	of the network.
 	
 	Args:
-		predictions: 2D float array of size [batch_size, n_classes]
-		labels: 2D int array of size [batch_size, n_classes]
-						with one-hot encoding. Ground truth labels for
-						each sample in the batch
+	predictions: 2D float array of size [batch_size, n_classes]
+	labels: 2D int array of size [batch_size, n_classes]
+			with one-hot encoding. Ground truth labels for
+			each sample in the batch
 	Returns:
-		accuracy: scalar float, the accuracy of predictions,
-							i.e. the average correct predictions over the whole batch
+	accuracy: scalar float, the accuracy of predictions,
+				i.e. the average correct predictions over the whole batch
 	
-	Done:
+	TODO:
 	Implement accuracy computation.
 	"""
 
-	#######################
-	# PUT YOUR CODE HERE  #
+	########################
+	# PUT YOUR CODE HERE	#
 	#######################
 	pred = torch.max(predictions, 1)[1].long()
 	accuracy = np.count_nonzero((pred==targets).data.numpy()) / float(np.shape(predictions)[0])
-	# max_index_predictions = predictions.max(dim = 1)[0]
-	# max_index_targets = targets.max(dim = 1)[0]
-
-	# accuracy = float((max_index_predictions == max_index_targets).sum())/max_index_targets.size()[0]
-	#######################
-	# END OF YOUR CODE    #
+	########################
+	# END OF YOUR CODE	#
 	#######################
 
 	return accuracy
@@ -74,6 +73,7 @@ def train():
 	### DO NOT CHANGE SEEDS!
 	# Set the random seeds for reproducibility
 	np.random.seed(42)
+	torch.manual_seed(42)
 
 	## Prepare all functions
 	# Get number of units in each hidden layer specified in the string such as 100,100
@@ -83,44 +83,10 @@ def train():
 	else:
 		dnn_hidden_units = []
 
+	########################
+	# PUT YOUR CODE HERE	#
 	#######################
-	# PUT YOUR CODE HERE  #
-	#######################
-	# X_train_raw, Y_train_raw, X_test_raw, Y_test_raw = cifar10_utils.load_cifar10(DATA_DIR_DEFAULT)
-	# X_train, Y_train, X_test, Y_test = cifar10_utils.preprocess_cifar10_data(X_train_raw, Y_train_raw, X_test_raw, Y_test_raw) # Load and preprocess dataset
-
-	# classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
-
-	# mlp = MLP(np.size(X_train[0]), dnn_hidden_units, len(classes)) # Initialize MLP
-
-	# optimizer = optim.SGD(mlp.parameters(), lr=LEARNING_RATE_DEFAULT, momentum=0.9)
-	# criterion = nn.CrossEntropyLoss()
-
-	# for epoch in range(1):
-
-	# 	for i in range(BATCH_SIZE_DEFAULT % np.shape(X_train)[0]): # Loop trough batches
-	# 		batch_input = X_train[i*BATCH_SIZE_DEFAULT:i*BATCH_SIZE_DEFAULT+BATCH_SIZE_DEFAULT] # Get batch input
-	# 		batch_input = np.reshape(batch_input, (BATCH_SIZE_DEFAULT, np.size(batch_input[0]))) # Reshape
-	# 		batch_output = Y_train[i*BATCH_SIZE_DEFAULT:i*BATCH_SIZE_DEFAULT+BATCH_SIZE_DEFAULT] # Get batch output
-
-	# 		batch_input = torch.from_numpy(batch_input) # Convert to tensor
-	# 		batch_output = torch.from_numpy(batch_output).long() # Convert to tensor
-
-	# 		# # zero the parameter gradients
-	# 		optimizer.zero_grad()
-
-	# 		# forward + backward + optimize
-	# 		outputs = mlp(batch_input)
-	# 		loss = criterion(outputs, batch_output)
-	# 		loss.backward()
-	# 		optimizer.step()
-
-	# 		print('L 0 sssss', loss)
-	# print('Finished Training')
-
-	INPUT_SIZE_DEFAULT = 3 * 32 * 32
-	OUTPUT_SIZE_DEFAULT = 10
-
+	
 	# read data
 	cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
 	
@@ -172,9 +138,8 @@ def train():
 				"   Test acc", np.round(test_a, 2))
 
 	print('Finished training :-)')
-
-	#######################
-	# END OF YOUR CODE    #
+	########################
+	# END OF YOUR CODE	#
 	#######################
 
 def print_flags():
@@ -201,17 +166,17 @@ if __name__ == '__main__':
 	# Command line arguments
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--dnn_hidden_units', type = str, default = DNN_HIDDEN_UNITS_DEFAULT,
-											help='Comma separated list of number of units in each hidden layer')
+						help='Comma separated list of number of units in each hidden layer')
 	parser.add_argument('--learning_rate', type = float, default = LEARNING_RATE_DEFAULT,
-											help='Learning rate')
+						help='Learning rate')
 	parser.add_argument('--max_steps', type = int, default = MAX_STEPS_DEFAULT,
-											help='Number of steps to run trainer.')
+						help='Number of steps to run trainer.')
 	parser.add_argument('--batch_size', type = int, default = BATCH_SIZE_DEFAULT,
-											help='Batch size to run trainer.')
+						help='Batch size to run trainer.')
 	parser.add_argument('--eval_freq', type=int, default=EVAL_FREQ_DEFAULT,
-												help='Frequency of evaluation on the test set')
+						help='Frequency of evaluation on the test set')
 	parser.add_argument('--data_dir', type = str, default = DATA_DIR_DEFAULT,
-											help='Directory for storing input data')
+						help='Directory for storing input data')
 	FLAGS, unparsed = parser.parse_known_args()
 
 	main()

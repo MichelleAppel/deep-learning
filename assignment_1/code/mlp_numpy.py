@@ -33,7 +33,7 @@ class MLP(object):
     Implement initialization of the network.
     """
 
-    ########################
+    #######################
     # PUT YOUR CODE HERE  #
     #######################
     self.n_inputs = n_inputs
@@ -55,8 +55,9 @@ class MLP(object):
       self.layers.append((LinearModule(self.n_hidden[-1], self.n_classes))) # Final linear module
     self.layers.append(SoftMaxModule()) # Softmax layer for prediction
 
-    self.crossentropy_layer = CrossEntropyModule()
-    ########################
+    # for layer in self.layers:
+      # print(layer)
+    #######################
     # END OF YOUR CODE    #
     #######################
 
@@ -74,13 +75,14 @@ class MLP(object):
     Implement forward pass of the network.
     """
 
-    ########################
+    #######################
     # PUT YOUR CODE HERE  #
     #######################
     out = x
     for layer in self.layers: # Loop through layers
+      # print(out.shape)
       out = layer.forward(out) # Forward pass with previous output as new input
-    ########################
+    #######################
     # END OF YOUR CODE    #
     #######################
 
@@ -114,12 +116,12 @@ class MLP(object):
     Implement backward pass of the network.
     """
     
-    ########################
+    ######################
     # PUT YOUR CODE HERE  #
     #######################
     for layer in reversed(self.layers): # Loop trough layers in reversed order
       dout = layer.backward(dout) # Backward pass with previous gradients as input
-    ########################
+    #######################
     # END OF YOUR CODE    #
     #######################
 

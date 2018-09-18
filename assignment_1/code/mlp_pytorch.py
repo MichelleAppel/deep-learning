@@ -38,19 +38,21 @@ class MLP(nn.Module):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    self.linear_layers = []
+    super(MLP, self).__init__()
+    self.linear_layers = nn.ModuleList() # List that is going to contain the layers
 
-    if len(n_hidden) == 0: 
-      self.linear_layers.append(nn.Linear(n_inputs, n_classes))
+    if len(n_hidden) == 0: # If no hidden layers
+      self.linear_layers.append(nn.Linear(n_inputs, n_classes)) # Input to output directly
     else:
-      for i in range(len(n_hidden)):
+      for i in range(len(n_hidden)): # Loop through hidden layers
         if i == 0:
-          n_in = n_inputs
+          n_in = n_inputs # Input layer
         else:
-          n_in = n_hidden[i]
+          n_in = n_hidden[i-1] # Input is output of previous layer
         self.linear_layers.append(nn.Linear(n_in, n_hidden[i]))
       self.linear_layers.append(nn.Linear(n_hidden[-1], n_classes))
 
+    print(self.linear_layers)
     #######################
     # END OF YOUR CODE    #
     #######################
@@ -74,8 +76,9 @@ class MLP(nn.Module):
     #######################
     out = x
     for linear_layer in self.linear_layers[:-1]:
-      out = F.relu(linear_layer.forward(out))
-    out = F.softmax(self.linear_layers[-1].forward(out), dim=0)
+      out = F.relu(linear_layer(out))
+    # out = F.softmax(self.linear_layers[-1].forward(out), dim=0)
+    out = self.linear_layers[-1](out)
     #######################
     # END OF YOUR CODE    #
     #######################

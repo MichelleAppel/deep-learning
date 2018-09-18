@@ -91,7 +91,7 @@ class LinearModule(object):
     # PUT YOUR CODE HERE  #
     #######################
     dx = self.params['weight'] # Gradient with respect to input is weights
-    dx = dout * dx   # Multiply elementwise with gradients of previous module
+    dx = dx @ dout.T   # Multiply elementwise with gradients of previous module
 
     self.grads['weight'] = self.x # Gradient of weight is input
     self.grads['bias'] = np.ones(self.out_features) # Gradient of bias equals one
@@ -192,11 +192,9 @@ class SoftMaxModule(object):
     # PUT YOUR CODE HERE  #
     #######################
     self.x = x # Store input
-
-    b = x.max() 
+    b = x.max()
     y = np.exp(x - b) # Exp-normalize trick to avoid numerical overflow
-    out = y / y.sum() # Softmax
-
+    out = (y.T / y.sum(axis=1)).T # Softmax
     self.out = out # Store output
     #######################
     # END OF YOUR CODE    #
@@ -220,10 +218,11 @@ class SoftMaxModule(object):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    dx = self.x - self.x**2 # if i==j
-    # dx_ij = -self.x*self.x # if i!=j TODO
+    # print('O00000KAY')
+    dx = np.diag(self.out) - self.out @ self.out.T
+    print(dx)
 
-    dx = dx * dout # Elementwise multiplication with gradients of previous module
+    # dx = dout @ dx
     #######################
     # END OF YOUR CODE    #
     #######################
@@ -276,7 +275,8 @@ class CrossEntropyModule(object):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    dx = y/x # Derivative of cross entropy module
+    batch_size = x.shape[0]
+    dx = - (y / x) / batch_size # Derivative of cross entropy module
     #######################
     # END OF YOUR CODE    #
     #######################

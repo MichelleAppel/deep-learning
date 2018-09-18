@@ -12,6 +12,7 @@ import os
 from mlp_numpy import MLP
 from modules import CrossEntropyModule
 import cifar10_utils
+import torch
 
 # Default constants
 DNN_HIDDEN_UNITS_DEFAULT = '100'
@@ -81,23 +82,24 @@ def train():
   X_train, Y_train, X_test, Y_test = cifar10_utils.preprocess_cifar10_data(X_train_raw, Y_train_raw, X_test_raw, Y_test_raw) # Load and preprocess dataset
 
   mlp = MLP(np.size(X_train[0]), dnn_hidden_units, NUM_CLASSES) # Initialize MLP
+  print(X_train[0].size, dnn_hidden_units, NUM_CLASSES)
 
   for i in range(BATCH_SIZE_DEFAULT % np.shape(X_train)[0]): # Loop trough batches
     batch_input = X_train[i*BATCH_SIZE_DEFAULT:i*BATCH_SIZE_DEFAULT+BATCH_SIZE_DEFAULT] # Get batch input
+    batch_input = np.reshape(batch_input, (BATCH_SIZE_DEFAULT, np.size(batch_input[0]))) # Reshape
     batch_output = Y_train[i*BATCH_SIZE_DEFAULT:i*BATCH_SIZE_DEFAULT+BATCH_SIZE_DEFAULT] # Get batch output
-    batch_output = cifar10_utils.dense_to_one_hot(batch_output, NUM_CLASSES) # Make one-hot vector
+    # batch_output = cifar10_utils.dense_to_one_hot(batch_output, NUM_CLASSES) # Make one-hot vector
 
-    average_input = np.average(batch_input, axis=0) # Make average input
-    average_input = np.reshape(average_input, (np.size(average_input),)) # Flatten
-    average_label = np.average(batch_output, axis=0) # Make average label
-
-    prediction = mlp.forward(average_input) # The predicted labels
-    loss, dloss = mlp.loss(prediction, average_label) # Loss
+    prediction = mlp.forward(batch_input) # The predicted labels
+    print(prediction)
+    break
+    
+    loss, dloss = mlp.loss(prediction, batch_output) # Loss
     backward = mlp.backward(dloss) # Perform backward pass
 
     for layer in mlp.layers:
       if layer.__class__.__name__ == 'LinearModule':
-        layer.params['weight'] = (layer.params['weight'].T - LEARNING_RATE_DEFAULT*layer.grads['weight']).T # Update weights
+        layer.params['weight'] -= LEARNING_RATE_DEFAULT*layer.grads['weight'] # Update weights
         layer.params['bias'] -= LEARNING_RATE_DEFAULT*layer.grads['bias'] # Update bias
 
   #######################
