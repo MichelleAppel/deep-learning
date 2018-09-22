@@ -36,7 +36,7 @@ class PalindromeDataset(data.Dataset):
         # Therefore we return the maximum integer value
         return sys.maxsize
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx=0):
         # Keep last digit as target label. Note: one-hot encoding for inputs is
         # more suitable for training, but this also works.
         full_palindrome = self.generate_palindrome()
