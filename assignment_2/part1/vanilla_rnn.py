@@ -34,8 +34,8 @@ class VanillaRNN(nn.Module):
         self.W_hh = nn.Parameter(torch.randn(num_hidden, num_hidden )) # hidden-to-hidden weight matrix
         self.W_ph = nn.Parameter(torch.randn(num_hidden, num_classes)) # hidden-to-output weight matrix
 
-        self.b_h = torch.nn.Parameter(torch.zeros(num_hidden )) # hidden bias
-        self.b_p = torch.nn.Parameter(torch.zeros(num_classes)) # output bias
+        self.b_h = nn.Parameter(torch.zeros(num_hidden )) # hidden bias
+        self.b_p = nn.Parameter(torch.zeros(num_classes)) # output bias
 
         self.tanh = nn.Tanh()            # tanh module
         self.softmax = nn.Softmax(dim=1) # softmax module

@@ -76,7 +76,6 @@ def train(config):
 
         loss = criterion(prediction, batch_targets)
         accuracy = float(torch.sum(prediction.argmax(dim=1)==batch_targets))/config.batch_size
-        # print(batch_inputs[0], prediction[0].argmax())
 
         writer.add_scalar('loss', loss, step)
         writer.add_scalar('accuracy', accuracy, step)

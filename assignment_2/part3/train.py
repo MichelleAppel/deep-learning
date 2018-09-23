@@ -25,11 +25,12 @@ import argparse
 import numpy as np
 
 import torch
+import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from part3.dataset import TextDataset
-from part3.model import TextGenerationModel
+from dataset import TextDataset
+from model import TextGenerationModel
 
 ################################################################################
 
@@ -38,28 +39,26 @@ def train(config):
     # Initialize the device which to run the model on
     device = torch.device(config.device)
 
-    # Initialize the model that we are going to use
-    model = TextGenerationModel( ... )  # fixme
-
     # Initialize the dataset and data loader (note the +1)
-    dataset = TextDataset( ... )  # fixme
+    dataset = TextDataset(config.txt_file, config.seq_length)
     data_loader = DataLoader(dataset, config.batch_size, num_workers=1)
 
+    # Initialize the model that we are going to use
+    model = TextGenerationModel(config.batch_size, config.seq_length, dataset.vocab_size)
+
     # Setup the loss and optimizer
-    criterion = None  # fixme
-    optimizer = None  # fixme
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(model.parameters(), lr=config.learning_rate, momentum=0.9)
 
     for step, (batch_inputs, batch_targets) in enumerate(data_loader):
-
         # Only for time measurement of step through network
         t1 = time.time()
 
-        #######################################################
-        # Add more code here ...
-        #######################################################
+        optimizer.zero_grad()
+        prediction = model(batch_inputs)
 
-        loss = np.inf   # fixme
-        accuracy = 0.0  # fixme
+        loss = criterion(prediction, torch.t(torch.stack(batch_targets)))        
+        accuracy = float(torch.sum(prediction.argmax(dim=1)==torch.t(torch.stack(batch_targets))))/config.batch_size
 
         # Just for time measurement
         t2 = time.time()
@@ -95,7 +94,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Model params
-    parser.add_argument('--txt_file', type=str, required=True, help="Path to a .txt file to train on")
+    parser.add_argument('--txt_file', type=str, default='data/alice.txt', help="Path to a .txt file to train on")
     parser.add_argument('--seq_length', type=int, default=30, help='Length of an input sequence')
     parser.add_argument('--lstm_num_hidden', type=int, default=128, help='Number of hidden units in the LSTM')
     parser.add_argument('--lstm_num_layers', type=int, default=2, help='Number of LSTM layers in the model')
@@ -116,6 +115,7 @@ if __name__ == "__main__":
     parser.add_argument('--summary_path', type=str, default="./summaries/", help='Output path for summaries')
     parser.add_argument('--print_every', type=int, default=5, help='How often to print training progress')
     parser.add_argument('--sample_every', type=int, default=100, help='How often to sample from the model')
+    parser.add_argument('--device', type=str, default="cuda:0", help="Training device 'cpu' or 'cuda:0'")
 
     config = parser.parse_args()
 

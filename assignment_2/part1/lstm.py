@@ -46,11 +46,11 @@ class LSTM(nn.Module):
         self.W_px = nn.Parameter(torch.randn(input_dim , num_classes ))  # prediction gate input weight matrix
         self.W_ph = nn.Parameter(torch.randn(num_hidden , num_classes )) # prediction gate hidden weight matrix
 
-        self.b_g = torch.nn.Parameter(torch.zeros(num_hidden )) # modulation bias
-        self.b_i = torch.nn.Parameter(torch.zeros(num_hidden )) # input bias
-        self.b_f = torch.nn.Parameter(torch.zeros(num_hidden )) # forget bias
-        self.b_o = torch.nn.Parameter(torch.zeros(num_hidden )) # output bias
-        self.b_p = torch.nn.Parameter(torch.zeros(num_classes)) # prediction bias
+        self.b_g = nn.Parameter(torch.zeros(num_hidden )) # modulation bias
+        self.b_i = nn.Parameter(torch.zeros(num_hidden )) # input bias
+        self.b_f = nn.Parameter(torch.zeros(num_hidden )) # forget bias
+        self.b_o = nn.Parameter(torch.zeros(num_hidden )) # output bias
+        self.b_p = nn.Parameter(torch.zeros(num_classes)) # prediction bias
 
         self.tanh = nn.Tanh() # tanh module
         self.sigmoid = nn.Sigmoid() # softmax module
