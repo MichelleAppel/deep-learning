@@ -33,7 +33,7 @@ from vanilla_rnn import VanillaRNN
 from lstm import LSTM
 
 # You may want to look into tensorboardX for logging
-# from tensorboardX import SummaryWriter
+from tensorboardX import SummaryWriter
 
 ################################################################################
 
@@ -41,11 +41,14 @@ def train(config):
 
     assert config.model_type in ('RNN', 'LSTM')
 
+    writer = SummaryWriter('./writer/input_length_' + str(config.input_length), 
+        filename_suffix='.input_length_' + str(config.input_length))
+
     # Initialize the device which to run the model on
     device = torch.device(config.device)
 
     # Initialize the model that we are going to use
-    model = VanillaRNN(config.input_length, config.input_dim, config.num_hidden, config.num_classes, config.batch_size)  # fixme
+    model = VanillaRNN(config.input_length, config.input_dim, config.num_hidden, config.num_classes, config.batch_size)
 
     # Initialize the dataset and data loader (note the +1)
     dataset = PalindromeDataset(config.input_length+1)
@@ -59,7 +62,6 @@ def train(config):
         # Only for time measurement of step through network
         t1 = time.time()
 
-        # Add more code here ...
         optimizer.zero_grad()
         prediction = model(batch_inputs)
 
@@ -69,11 +71,12 @@ def train(config):
         torch.nn.utils.clip_grad_norm(model.parameters(), max_norm=config.max_norm)
         ############################################################################
 
-        # Add more code here ...
-
         loss = criterion(prediction, batch_targets)
         accuracy = float(torch.sum(prediction.argmax(dim=1)==batch_targets))/config.batch_size
         # print(batch_inputs[0], prediction[0].argmax())
+
+        writer.add_scalar('loss', loss, step)
+        writer.add_scalar('accuracy', accuracy, step)
 
         loss.backward()
         optimizer.step()
