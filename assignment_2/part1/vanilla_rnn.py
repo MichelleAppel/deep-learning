@@ -37,7 +37,7 @@ class VanillaRNN(nn.Module):
         self.b_h = torch.nn.Parameter(torch.zeros(num_hidden )) # hidden bias
         self.b_p = torch.nn.Parameter(torch.zeros(num_classes)) # output bias
 
-        self.tanh = nn.Tanh()       # tanh module
+        self.tanh = nn.Tanh()            # tanh module
         self.softmax = nn.Softmax(dim=1) # softmax module
 
     def forward(self, x):
