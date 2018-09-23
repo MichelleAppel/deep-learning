@@ -45,10 +45,10 @@ class VanillaRNN(nn.Module):
 
         for x_t in torch.t(x): # loop through sequence
             x_t = x_t.reshape(-1,1) # reshape input at timestep t
-            h_t = self.tanh(x_t @ self.W_hx + h @ self.W_hh + self.b_h) # hidden state at timestep t
+            h_t = self.tanh(x_t @ self.W_hx + h @ self.W_hh + self.b_h) # hidden state at timestep t (equation (1))
             h = h_t # store last hidden state
 
-            p_t = h_t @ self.W_ph + self.b_p # output value
+            p_t = h_t @ self.W_ph + self.b_p # output value (equation (2))
 
         y_p = self.softmax(p_t) # softmax
         return p_t

@@ -41,14 +41,17 @@ def train(config):
 
     assert config.model_type in ('RNN', 'LSTM')
 
-    writer = SummaryWriter('./writer/input_length_' + str(config.input_length), 
+    writer = SummaryWriter('./writer/'+config.model_type+'/input_length_' + str(config.input_length), 
         filename_suffix='.input_length_' + str(config.input_length))
 
     # Initialize the device which to run the model on
     device = torch.device(config.device)
 
     # Initialize the model that we are going to use
-    model = VanillaRNN(config.input_length, config.input_dim, config.num_hidden, config.num_classes, config.batch_size)
+    if config.model_type == 'RNN':
+        model = VanillaRNN(config.input_length, config.input_dim, config.num_hidden, config.num_classes, config.batch_size)
+    elif config.model_type == 'LSTM':
+        model = LSTM(config.input_length, config.input_dim, config.num_hidden, config.num_classes, config.batch_size)
 
     # Initialize the dataset and data loader (note the +1)
     dataset = PalindromeDataset(config.input_length+1)
