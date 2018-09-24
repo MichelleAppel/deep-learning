@@ -54,28 +54,42 @@ def train(config):
         # Only for time measurement of step through network
         t1 = time.time()
 
-        optimizer.zero_grad()
-        prediction = model(batch_inputs)
+        batch_inputs = torch.t(torch.stack(batch_inputs))
 
-        loss = criterion(prediction, torch.t(torch.stack(batch_targets)))        
-        accuracy = float(torch.sum(prediction.argmax(dim=1)==torch.t(torch.stack(batch_targets))))/config.batch_size
+        optimizer.zero_grad()
+
+        prediction = model(batch_inputs)
+        loss = 0
+        accuracy = 0
+        for prediction_t, target_t in zip(prediction, batch_targets):
+            loss += criterion(prediction_t, target_t)
+            accuracy += float(torch.sum(prediction_t.argmax(dim=1)==target_t))/config.batch_size
+        accuracy = accuracy/config.seq_length
+
+        loss.backward()
+        optimizer.step()
 
         # Just for time measurement
         t2 = time.time()
         examples_per_second = config.batch_size/float(t2-t1)
 
         if step % config.print_every == 0:
-
+            
             print("[{}] Train Step {:04d}/{:04d}, Batch Size = {}, Examples/Sec = {:.2f}, "
                   "Accuracy = {:.2f}, Loss = {:.3f}".format(
                     datetime.now().strftime("%Y-%m-%d %H:%M"), step,
-                    config.train_steps, config.batch_size, examples_per_second,
+                    int(config.train_steps), config.batch_size, examples_per_second,
                     accuracy, loss
             ))
 
-        if step == config.sample_every:
-            # Generate some sentences by sampling from the model
-            pass
+        if step % config.sample_every == 0:
+            prediction_idx = torch.t(torch.stack([p_t.argmax(dim=1) for p_t in prediction]))
+            batch_targets = torch.t(torch.stack(batch_targets))
+            print()
+            print('INPUT: ', dataset.convert_to_string(batch_inputs[0]))
+            print('TARG:  ', dataset.convert_to_string(batch_targets[0]))
+            print('PRED:  ', dataset.convert_to_string(prediction_idx[0]))
+            print()
 
         if step == config.train_steps:
             # If you receive a PyTorch data-loader error, check this bug report:

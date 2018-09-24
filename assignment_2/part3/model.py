@@ -56,18 +56,20 @@ class TextGenerationModel(nn.Module):
 
         self.tanh = nn.Tanh() # tanh module
         self.sigmoid = nn.Sigmoid() # softmax module
-        self.softmax = nn.Softmax(dim=0) # softmax module
+        self.softmax = nn.Softmax(dim=1) # softmax module
 
     def forward(self, x):
         h = torch.zeros(self.batch_size, self.num_hidden) # last hidden state
         c = torch.zeros(self.batch_size, self.num_hidden)
-        # prediction = torch.zeros(self.batch_size, self.)
+        prediction = []
+        
+        for x_t in torch.t(x): # loop through sequence
+            x_tonehot = torch.FloatTensor(self.batch_size, self.vocabulary_size)
+            x_tonehot.zero_()
+            ones = torch.ones(x_t.shape)
+            x_tonehot.scatter_(1,x_t.reshape(-1,1), ones.reshape(-1,1))
 
-        x = torch.stack(x).float()
-        for x_t in x: # loop through sequence
-
-            x_t = x_t.reshape(-1,1) # reshape input at timestep t
-            x_t = torch.FloatTensor(self.batch_size, self.vocabulary_size)
+            x_t = x_tonehot
 
             g_t = self.tanh(x_t @ self.W_gx + h @ self.W_gh + self.b_g) # modulation (equation (4))
             i_t = self.sigmoid(x_t @ self.W_ix + h @ self.W_ih + self.b_i) # input (equation (5))
@@ -82,4 +84,5 @@ class TextGenerationModel(nn.Module):
 
             p_t = h_t @ self.W_ph + self.b_p # prediction (equation (10))
             y_t = self.softmax(p_t) # softmax (equation (11))
-        return y_t
+            prediction.append(y_t)
+        return prediction
