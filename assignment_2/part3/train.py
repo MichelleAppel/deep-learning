@@ -32,9 +32,17 @@ from torch.utils.data import DataLoader
 from dataset import TextDataset
 from model import TextGenerationModel
 
+from tensorboardX import SummaryWriter
+
 ################################################################################
 
 def train(config):
+
+    if config.summary:
+        # Tensorboard writer
+        writer = SummaryWriter(config.summary_path + config.txt_file[config.txt_file.index('/')+1:] 
+            + '/seq_length_' + str(config.seq_length), 
+            filename_suffix='.seq_length_' + str(config.seq_length))
 
     # Initialize the device which to run the model on
     device = torch.device(config.device)
@@ -66,6 +74,10 @@ def train(config):
             accuracy += float(torch.sum(prediction_t.argmax(dim=1)==target_t))/config.batch_size
         accuracy = accuracy/config.seq_length
 
+        if config.summary:
+            writer.add_scalar('loss', loss, step)
+            writer.add_scalar('accuracy', accuracy, step)
+
         loss.backward()
         optimizer.step()
 
@@ -85,11 +97,21 @@ def train(config):
         if step % config.sample_every == 0:
             prediction_idx = torch.t(torch.stack([p_t.argmax(dim=1) for p_t in prediction]))
             batch_targets = torch.t(torch.stack(batch_targets))
+
+            input_string = dataset.convert_to_string(batch_inputs[0])
+            target_string = dataset.convert_to_string(batch_targets[0])
+            predicted_string = dataset.convert_to_string(prediction_idx[0])
+
             print()
-            print('INPUT: ', dataset.convert_to_string(batch_inputs[0]))
-            print('TARG:  ', dataset.convert_to_string(batch_targets[0]))
-            print('PRED:  ', dataset.convert_to_string(prediction_idx[0]))
+            print('INPUT: ', input_string)
+            print('TARG:  ', target_string)
+            print('PRED:  ', predicted_string)
             print()
+
+            if config.summary:
+                writer.add_text('input', input_string, step)
+                writer.add_text('target', target_string, step)
+                writer.add_text('output', predicted_string, step)
 
         if step == config.train_steps:
             # If you receive a PyTorch data-loader error, check this bug report:
@@ -126,6 +148,7 @@ if __name__ == "__main__":
     parser.add_argument('--max_norm', type=float, default=5.0, help='--')
 
     # Misc params
+    parser.add_argument('--summary', type=bool, default=True, help='Make summary')
     parser.add_argument('--summary_path', type=str, default="./summaries/", help='Output path for summaries')
     parser.add_argument('--print_every', type=int, default=5, help='How often to print training progress')
     parser.add_argument('--sample_every', type=int, default=100, help='How often to sample from the model')
