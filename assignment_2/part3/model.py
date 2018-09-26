@@ -35,26 +35,26 @@ class TextGenerationModel(nn.Module):
         self.vocabulary_size = vocabulary_size
         self.lstm_num_layers = lstm_num_layers
 
-        self.W_gx = nn.ParameterList()
-        self.W_gh = nn.ParameterList()
+        self.W_gx = nn.ParameterList() # modulation gate input weight matrix
+        self.W_gh = nn.ParameterList() # modulation gate hidden weight matrix
 
-        self.W_ix = nn.ParameterList()
-        self.W_ih = nn.ParameterList()
+        self.W_ix = nn.ParameterList() # input gate input weight matrix
+        self.W_ih = nn.ParameterList() # modulation gate hidden weight matrix
 
-        self.W_fx = nn.ParameterList()
-        self.W_fh = nn.ParameterList()
+        self.W_fx = nn.ParameterList() # forget gate input weight matrix
+        self.W_fh = nn.ParameterList() # forget gate hidden weight matrix
 
-        self.W_ox = nn.ParameterList()
-        self.W_oh = nn.ParameterList()
+        self.W_ox = nn.ParameterList() # output gate input weight matrix
+        self.W_oh = nn.ParameterList() # output gate hidden weight matrix
 
-        self.W_px = nn.ParameterList()
-        self.W_ph = nn.ParameterList()
+        self.W_px = nn.ParameterList() # prediction gate input weight matrix
+        self.W_ph = nn.ParameterList() # prediction gate hidden weight matrix
 
-        self.b_g = nn.ParameterList()
-        self.b_i = nn.ParameterList()
-        self.b_f = nn.ParameterList()
-        self.b_o = nn.ParameterList()
-        self.b_p = nn.ParameterList()
+        self.b_g = nn.ParameterList() # modulation bias
+        self.b_i = nn.ParameterList() # input bias
+        self.b_f = nn.ParameterList() # forget bias
+        self.b_o = nn.ParameterList() # output bias
+        self.b_p = nn.ParameterList() # prediction bias
 
         for layer in range(lstm_num_layers):
             self.W_gx.append(nn.Parameter(torch.randn((vocabulary_size, lstm_num_hidden)))) # modulation gate input weight matrix
@@ -83,16 +83,15 @@ class TextGenerationModel(nn.Module):
         self.softmax = nn.Softmax(dim=1) # softmax module
 
     def forward(self, x):
+        # Make one-hot vector out of input idx
         x_onehot = torch.FloatTensor(self.seq_length, self.batch_size, self.vocabulary_size)
         x_onehot.zero_()
-        
         for t, x_t in enumerate(torch.t(x)):
             ones = torch.ones(x_t.shape)
             x_onehot[t].scatter_(1, x_t.reshape(-1,1), ones.reshape(-1,1))
-
         x = x_onehot
 
-        for layer in range(self.lstm_num_layers):
+        for layer in range(self.lstm_num_layers): # loop through lstm layers
             h = torch.zeros(self.batch_size, self.num_hidden) # last hidden state
             c = torch.zeros(self.batch_size, self.num_hidden) # last hidden cell state
             prediction = []
@@ -112,5 +111,5 @@ class TextGenerationModel(nn.Module):
                 p_t = h_t @ self.W_ph[layer] + self.b_p[layer] # prediction (equation (10))
                 y_t = self.softmax(p_t) # softmax (equation (11))
                 prediction.append(y_t)
-            x = prediction #torch.t(torch.stack(prediction))
+            x = prediction # output is new input
         return prediction
