@@ -28,7 +28,7 @@ class TextDataset(data.Dataset):
         assert os.path.splitext(filename)[1] == ".txt"
         self._seq_length = seq_length
         self._data = open(filename, 'r').read()
-        if newline_to_whitespace:
+        if newline_to_whitespace: # Replace newlines with whitespace
             self._data = self._data.replace("\n", " ")
         self._chars = list(set(self._data))
         self._data_size, self._vocab_size = len(self._data), len(self._chars)

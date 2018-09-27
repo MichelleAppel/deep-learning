@@ -84,7 +84,8 @@ class TextGenerationModel(nn.Module):
 
     def forward(self, x):
         # Make one-hot vector out of input idx
-        x_onehot = torch.FloatTensor(self.seq_length, self.batch_size, self.vocabulary_size)
+        batch_size = x.shape[0]
+        x_onehot = torch.FloatTensor(self.seq_length, batch_size, self.vocabulary_size)
         x_onehot.zero_()
         for t, x_t in enumerate(torch.t(x)):
             ones = torch.ones(x_t.shape)
@@ -92,8 +93,8 @@ class TextGenerationModel(nn.Module):
         x = x_onehot
 
         for layer in range(self.lstm_num_layers): # loop through lstm layers
-            h = torch.zeros(self.batch_size, self.num_hidden) # last hidden state
-            c = torch.zeros(self.batch_size, self.num_hidden) # last hidden cell state
+            h = torch.zeros(batch_size, self.num_hidden) # last hidden state
+            c = torch.zeros(batch_size, self.num_hidden) # last hidden cell state
             prediction = []
 
             for x_t in x: # loop through sequence
@@ -109,7 +110,7 @@ class TextGenerationModel(nn.Module):
                 h = h_t # store last hidden state
 
                 p_t = h_t @ self.W_ph[layer] + self.b_p[layer] # prediction (equation (10))
-                y_t = self.softmax(p_t) # softmax (equation (11))
-                prediction.append(y_t)
+                # y_t = self.softmax(p_t) # softmax (equation (11))
+                prediction.append(p_t)
             x = prediction # output is new input
         return prediction
