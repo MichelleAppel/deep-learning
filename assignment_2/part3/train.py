@@ -57,42 +57,44 @@ def train(config):
     # Setup the loss and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=config.learning_rate, momentum=0.9)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, config.learning_rate_step, gamma=1-config.learning_rate_decay) # Learning rate decay
 
     for step, (batch_inputs, batch_targets) in enumerate(data_loader):
         # Only for time measurement of step through network
         t1 = time.time()
 
-        batch_inputs = torch.t(torch.stack(batch_inputs))
+        batch_inputs = torch.t(torch.stack(batch_inputs)) # Transform input to tensor
 
-        optimizer.zero_grad()
+        optimizer.zero_grad() # Set gradients to zero
+        scheduler.step() # Learning rate decay
 
-        prediction = model(batch_inputs)
+        prediction = model(batch_inputs) # Give predictions
+
         loss = 0
         accuracy = 0
         for prediction_t, target_t in zip(prediction, batch_targets):
-            loss += criterion(prediction_t, target_t)
-            accuracy += float(torch.sum(prediction_t.argmax(dim=1)==target_t))/config.batch_size
+            loss += criterion(prediction_t, target_t) # Loss
+            accuracy += float(torch.sum(prediction_t.argmax(dim=1)==target_t))/config.batch_size # Accuracy
         accuracy = accuracy/config.seq_length
 
-        if config.summary:
+        if config.summary: # For tensorboard summary
             writer.add_scalar('loss', loss, step)
             writer.add_scalar('accuracy', accuracy, step)
 
-        loss.backward()
-        optimizer.step()
+        loss.backward() # Perform backward pass
+        optimizer.step() # Update weights
 
         # Just for time measurement
         t2 = time.time()
         examples_per_second = config.batch_size/float(t2-t1)
 
         if step % config.print_every == 0:
-            
-            print("[{}] Train Step {:04d}/{:04d}, Batch Size = {}, Examples/Sec = {:.2f}, "
+            print("[{}] Train Step {:04d}/{:04d}, LR = {}, Batch Size = {}, Examples/Sec = {:.2f}, "
                   "Accuracy = {:.2f}, Loss = {:.3f}".format(
                     datetime.now().strftime("%Y-%m-%d %H:%M"), step,
-                    int(config.train_steps), config.batch_size, examples_per_second,
+                    int(config.train_steps), optimizer.param_groups[0]['lr'], config.batch_size, examples_per_second,
                     accuracy, loss
-            ))
+            ))            
 
         if step % config.sample_every == 0:
             prediction_idx = torch.t(torch.stack([p_t.argmax(dim=1) for p_t in prediction]))
