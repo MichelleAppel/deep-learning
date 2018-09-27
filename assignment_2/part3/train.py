@@ -59,11 +59,14 @@ def train(config):
     optimizer = optim.SGD(model.parameters(), lr=config.learning_rate, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, config.learning_rate_step, gamma=1-config.learning_rate_decay) # Learning rate decay
 
+    # dropout = nn.Dropout(p=1-config.dropout_keep_prob)
+
     for step, (batch_inputs, batch_targets) in enumerate(data_loader):
         # Only for time measurement of step through network
         t1 = time.time()
 
         batch_inputs = torch.t(torch.stack(batch_inputs)) # Transform input to tensor
+        # batch_inputs = dropout(batch_inputs) # Error: Floating point exception (core dumped)
 
         optimizer.zero_grad() # Set gradients to zero
         scheduler.step() # Learning rate decay
