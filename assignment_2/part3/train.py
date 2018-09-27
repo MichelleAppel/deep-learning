@@ -148,7 +148,7 @@ if __name__ == "__main__":
     parser.add_argument('--max_norm', type=float, default=5.0, help='--')
 
     # Misc params
-    parser.add_argument('--summary', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], help='Make summary', )
+    parser.add_argument('--summary', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=True, help='Make summary', )
     parser.add_argument('--summary_path', type=str, default="./summaries/", help='Output path for summaries')
     parser.add_argument('--print_every', type=int, default=5, help='How often to print training progress')
     parser.add_argument('--sample_every', type=int, default=100, help='How often to sample from the model')
