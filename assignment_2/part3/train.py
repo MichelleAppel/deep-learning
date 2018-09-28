@@ -60,67 +60,71 @@ def train(config):
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, config.learning_rate_step, gamma=1-config.learning_rate_decay) # Learning rate decay
 
     # dropout = nn.Dropout(p=1-config.dropout_keep_prob)
+    total_step = 0
 
-    for step, (batch_inputs, batch_targets) in enumerate(data_loader):
-        # Only for time measurement of step through network
-        t1 = time.time()
+    for epoch in range(config.epochs):
+        for step, (batch_inputs, batch_targets) in enumerate(data_loader):
 
-        batch_inputs = torch.t(torch.stack(batch_inputs)) # Transform input to tensor
-        # batch_inputs = dropout(batch_inputs) # Error: Floating point exception (core dumped)
+            total_step += 1
+            step = total_step
+            # Only for time measurement of step through network
+            t1 = time.time()
 
-        optimizer.zero_grad() # Set gradients to zero
-        scheduler.step() # Learning rate decay
+            batch_inputs = torch.t(torch.stack(batch_inputs)).to(device) # Transform input to tensor
+            # batch_inputs = dropout(batch_inputs) # Error: Floating point exception (core dumped)
 
-        prediction = model(batch_inputs) # Give predictions
+            optimizer.zero_grad() # Set gradients to zero
+            scheduler.step() # Learning rate decay
 
-        loss = 0
-        accuracy = 0
-        for prediction_t, target_t in zip(prediction, batch_targets):
-            loss += criterion(prediction_t, target_t) # Loss
-            accuracy += float(torch.sum(prediction_t.argmax(dim=1)==target_t))/config.batch_size # Accuracy
-        accuracy = accuracy/config.seq_length
+            prediction = model(batch_inputs) # Give predictions
 
-        if config.summary: # For tensorboard summary
-            writer.add_scalar('loss', loss, step)
-            writer.add_scalar('accuracy', accuracy, step)
+            loss = 0
+            accuracy = 0
+            for prediction_t, target_t in zip(prediction, batch_targets):
+                target_t = target_t.to(device)
+                loss += criterion(prediction_t, target_t) # Loss
+                accuracy += float(torch.sum(prediction_t.argmax(dim=1)==target_t))/config.batch_size # Accuracy
+            accuracy = accuracy/config.seq_length
 
-        loss.backward() # Perform backward pass
-        optimizer.step() # Update weights
+            if config.summary: # For tensorboard summary
+                writer.add_scalar('loss', loss, step)
+                writer.add_scalar('accuracy', accuracy, step)
 
-        # Just for time measurement
-        t2 = time.time()
-        examples_per_second = config.batch_size/float(t2-t1)
+            loss.backward() # Perform backward pass
+            optimizer.step() # Update weights
 
-        if step % config.print_every == 0:
-            print("[{}] Train Step {:04d}/{:04d}, LR = {}, Batch Size = {}, Examples/Sec = {:.2f}, "
-                  "Accuracy = {:.2f}, Loss = {:.3f}".format(
-                    datetime.now().strftime("%Y-%m-%d %H:%M"), step,
-                    int(config.train_steps), optimizer.param_groups[0]['lr'], config.batch_size, examples_per_second,
-                    accuracy, loss
-            ))            
+            # Just for time measurement
+            t2 = time.time()
+            examples_per_second = config.batch_size/float(t2-t1)
 
-        if step % config.sample_every == 0:
-            prediction_idx = torch.t(torch.stack([p_t.argmax(dim=1) for p_t in prediction]))
-            batch_targets = torch.t(torch.stack(batch_targets))
+            if step % config.print_every == 0:
+                print("[{}] Train Step {:d}/{:04d}, LR = {}, Batch Size = {}, Examples/Sec = {:.2f}, "
+                    "Accuracy = {:.2f}, Loss = {:.3f}".format(
+                        datetime.now().strftime("%Y-%m-%d %H:%M"), step,
+                        int(config.train_steps), optimizer.param_groups[0]['lr'], config.batch_size, examples_per_second,
+                        accuracy, loss
+                ))            
 
-            input_string = dataset.convert_to_string(batch_inputs[0])
-            target_string = dataset.convert_to_string(batch_targets[0])
-            predicted_string = dataset.convert_to_string(prediction_idx[0])
+            if step % config.sample_every == 0:
+                prediction_idx = torch.t(torch.stack([p_t.argmax(dim=1) for p_t in prediction]))
+                batch_targets = torch.t(torch.stack(batch_targets))
 
-            print()
-            print('INPUT: ', input_string)
-            print('TARG:  ', target_string)
-            print('PRED:  ', predicted_string)
-            print()
+                input_string = dataset.convert_to_string(batch_inputs[0])
+                target_string = dataset.convert_to_string(batch_targets[0])
+                predicted_string = dataset.convert_to_string(prediction_idx[0])
 
-            if config.summary:
-                writer.add_text('input', input_string, step)
-                writer.add_text('target', target_string, step)
-                writer.add_text('output', predicted_string, step)
+                print()
+                print('INPUT: ', input_string)
+                print('TARG:  ', target_string)
+                print('PRED:  ', predicted_string)
+                print()
 
-        if step == config.train_steps:
-            # If you receive a PyTorch data-loader error, check this bug report:
-            # https://github.com/pytorch/pytorch/pull/9655
+                if config.summary:
+                    writer.add_text('input', input_string, step)
+                    writer.add_text('target', target_string, step)
+                    writer.add_text('output', predicted_string, step)
+
+        if step > config.train_steps:
             break
 
     print('Done training.')
@@ -141,6 +145,7 @@ if __name__ == "__main__":
     parser.add_argument('--lstm_num_layers', type=int, default=2, help='Number of LSTM layers in the model')
 
     # Training params
+    parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')
     parser.add_argument('--batch_size', type=int, default=64, help='Number of examples to process in a batch')
     parser.add_argument('--learning_rate', type=float, default=2e-3, help='Learning rate')
 

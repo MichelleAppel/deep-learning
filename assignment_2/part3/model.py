@@ -34,49 +34,50 @@ class TextGenerationModel(nn.Module):
         self.seq_length = seq_length
         self.vocabulary_size = vocabulary_size
         self.lstm_num_layers = lstm_num_layers
+        self.device = device
 
-        self.W_gx = nn.ParameterList() # modulation gate input weight matrix
-        self.W_gh = nn.ParameterList() # modulation gate hidden weight matrix
+        self.W_gx = nn.ParameterList().to(device) # modulation gate input weight matrix
+        self.W_gh = nn.ParameterList().to(device) # modulation gate hidden weight matrix
 
-        self.W_ix = nn.ParameterList() # input gate input weight matrix
-        self.W_ih = nn.ParameterList() # modulation gate hidden weight matrix
+        self.W_ix = nn.ParameterList().to(device) # input gate input weight matrix
+        self.W_ih = nn.ParameterList().to(device) # modulation gate hidden weight matrix
 
-        self.W_fx = nn.ParameterList() # forget gate input weight matrix
-        self.W_fh = nn.ParameterList() # forget gate hidden weight matrix
+        self.W_fx = nn.ParameterList().to(device) # forget gate input weight matrix
+        self.W_fh = nn.ParameterList().to(device) # forget gate hidden weight matrix
 
-        self.W_ox = nn.ParameterList() # output gate input weight matrix
-        self.W_oh = nn.ParameterList() # output gate hidden weight matrix
+        self.W_ox = nn.ParameterList().to(device) # output gate input weight matrix
+        self.W_oh = nn.ParameterList().to(device) # output gate hidden weight matrix
 
-        self.W_px = nn.ParameterList() # prediction gate input weight matrix
-        self.W_ph = nn.ParameterList() # prediction gate hidden weight matrix
+        self.W_px = nn.ParameterList().to(device) # prediction gate input weight matrix
+        self.W_ph = nn.ParameterList().to(device) # prediction gate hidden weight matrix
 
-        self.b_g = nn.ParameterList() # modulation bias
-        self.b_i = nn.ParameterList() # input bias
-        self.b_f = nn.ParameterList() # forget bias
-        self.b_o = nn.ParameterList() # output bias
-        self.b_p = nn.ParameterList() # prediction bias
+        self.b_g = nn.ParameterList().to(device) # modulation bias
+        self.b_i = nn.ParameterList().to(device) # input bias
+        self.b_f = nn.ParameterList().to(device) # forget bias
+        self.b_o = nn.ParameterList().to(device) # output bias
+        self.b_p = nn.ParameterList().to(device) # prediction bias
 
         for layer in range(lstm_num_layers):
-            self.W_gx.append(nn.Parameter(torch.randn((vocabulary_size, lstm_num_hidden)))) # modulation gate input weight matrix
-            self.W_gh.append(nn.Parameter(torch.randn((lstm_num_hidden, lstm_num_hidden)))) # modulation gate hidden weight matrix
+            self.W_gx.append(nn.Parameter(torch.randn((vocabulary_size, lstm_num_hidden)).to(device))) # modulation gate input weight matrix
+            self.W_gh.append(nn.Parameter(torch.randn((lstm_num_hidden, lstm_num_hidden)).to(device))) # modulation gate hidden weight matrix
 
-            self.W_ix.append(nn.Parameter(torch.randn((vocabulary_size, lstm_num_hidden)))) # input gate input weight matrix
-            self.W_ih.append(nn.Parameter(torch.randn((lstm_num_hidden, lstm_num_hidden)))) # input gate hidden weight matrix
+            self.W_ix.append(nn.Parameter(torch.randn((vocabulary_size, lstm_num_hidden)).to(device))) # input gate input weight matrix
+            self.W_ih.append(nn.Parameter(torch.randn((lstm_num_hidden, lstm_num_hidden)).to(device))) # input gate hidden weight matrix
 
-            self.W_fx.append(nn.Parameter(torch.randn((vocabulary_size, lstm_num_hidden)))) # forget gate input weight matrix
-            self.W_fh.append(nn.Parameter(torch.randn((lstm_num_hidden, lstm_num_hidden)))) # forget gate hidden weight matrix
+            self.W_fx.append(nn.Parameter(torch.randn((vocabulary_size, lstm_num_hidden)).to(device))) # forget gate input weight matrix
+            self.W_fh.append(nn.Parameter(torch.randn((lstm_num_hidden, lstm_num_hidden)).to(device))) # forget gate hidden weight matrix
                         
-            self.W_ox.append(nn.Parameter(torch.randn((vocabulary_size, lstm_num_hidden)))) # output gate input weight matrix
-            self.W_oh.append(nn.Parameter(torch.randn((lstm_num_hidden, lstm_num_hidden)))) # output gate hidden weight matrix
+            self.W_ox.append(nn.Parameter(torch.randn((vocabulary_size, lstm_num_hidden)).to(device))) # output gate input weight matrix
+            self.W_oh.append(nn.Parameter(torch.randn((lstm_num_hidden, lstm_num_hidden)).to(device))) # output gate hidden weight matrix
 
-            self.W_px.append(nn.Parameter(torch.randn((vocabulary_size, vocabulary_size)))) # prediction gate input weight matrix
-            self.W_ph.append(nn.Parameter(torch.randn((lstm_num_hidden, vocabulary_size)))) # prediction gate hidden weight matrix
+            self.W_px.append(nn.Parameter(torch.randn((vocabulary_size, vocabulary_size)).to(device))) # prediction gate input weight matrix
+            self.W_ph.append(nn.Parameter(torch.randn((lstm_num_hidden, vocabulary_size)).to(device))) # prediction gate hidden weight matrix
 
-            self.b_g.append(nn.Parameter(torch.zeros(lstm_num_hidden))) # modulation bias
-            self.b_i.append(nn.Parameter(torch.zeros(lstm_num_hidden))) # input bias
-            self.b_f.append(nn.Parameter(torch.zeros(lstm_num_hidden))) # forget bias
-            self.b_o.append(nn.Parameter(torch.zeros(lstm_num_hidden))) # output bias
-            self.b_p.append(nn.Parameter(torch.zeros(vocabulary_size))) # prediction bias
+            self.b_g.append(nn.Parameter(torch.zeros(lstm_num_hidden).to(device))) # modulation bias
+            self.b_i.append(nn.Parameter(torch.zeros(lstm_num_hidden).to(device))) # input bias
+            self.b_f.append(nn.Parameter(torch.zeros(lstm_num_hidden).to(device))) # forget bias
+            self.b_o.append(nn.Parameter(torch.zeros(lstm_num_hidden).to(device))) # output bias
+            self.b_p.append(nn.Parameter(torch.zeros(vocabulary_size).to(device))) # prediction bias
 
         self.tanh = nn.Tanh() # tanh module
         self.sigmoid = nn.Sigmoid() # softmax module
@@ -85,16 +86,16 @@ class TextGenerationModel(nn.Module):
     def forward(self, x):
         # Make one-hot vector out of input idx
         batch_size = x.shape[0]
-        x_onehot = torch.FloatTensor(self.seq_length, batch_size, self.vocabulary_size)
+        x_onehot = torch.FloatTensor(self.seq_length, batch_size, self.vocabulary_size).to(self.device)
         x_onehot.zero_()
+        ones = torch.ones(torch.t(x)[0].shape).to(self.device)
         for t, x_t in enumerate(torch.t(x)):
-            ones = torch.ones(x_t.shape)
             x_onehot[t].scatter_(1, x_t.reshape(-1,1), ones.reshape(-1,1))
         x = x_onehot
 
         for layer in range(self.lstm_num_layers): # loop through lstm layers
-            h = torch.zeros(batch_size, self.num_hidden) # last hidden state
-            c = torch.zeros(batch_size, self.num_hidden) # last hidden cell state
+            h = torch.zeros(batch_size, self.num_hidden).to(self.device) # last hidden state
+            c = torch.zeros(batch_size, self.num_hidden).to(self.device) # last hidden cell state
             prediction = []
 
             for x_t in x: # loop through sequence
