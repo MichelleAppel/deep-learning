@@ -21,7 +21,6 @@ import os
 import numpy as np
 import torch.utils.data as data
 
-
 class TextDataset(data.Dataset):
 
     def __init__(self, filename, seq_length, newline_to_whitespace=True):
@@ -30,7 +29,7 @@ class TextDataset(data.Dataset):
         self._data = open(filename, 'r').read()
         if newline_to_whitespace: # Replace newlines with whitespace
             self._data = self._data.replace("\n", " ")
-        self._chars = list(set(self._data))
+        self._chars = list(sorted(set(self._data)))
         self._data_size, self._vocab_size = len(self._data), len(self._chars)
         print("Initialize dataset with {} characters, {} unique.".format(
             self._data_size, self._vocab_size))
