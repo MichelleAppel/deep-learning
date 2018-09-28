@@ -56,7 +56,7 @@ def train(config):
 
     # Setup the loss and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=config.learning_rate, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=config.learning_rate, momentum=0.8)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, config.learning_rate_step, gamma=config.learning_rate_decay) # Learning rate decay
 
     # dropout = nn.Dropout(p=1-config.dropout_keep_prob)
@@ -74,7 +74,8 @@ def train(config):
             # batch_inputs = dropout(batch_inputs) # Error: Floating point exception (core dumped)
 
             optimizer.zero_grad() # Set gradients to zero
-            scheduler.step() # Learning rate decay
+            if step > config.learning_rate_decay_after:
+                scheduler.step() # Learning rate decay
 
             prediction = model(batch_inputs) # Give predictions
 
@@ -152,13 +153,14 @@ if __name__ == "__main__":
     parser.add_argument('--lstm_num_layers', type=int, default=2, help='Number of LSTM layers in the model')
 
     # Training params
-    parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')
+    parser.add_argument('--epochs', type=int, default=1000, help='Number of epochs')
     parser.add_argument('--batch_size', type=int, default=64, help='Number of examples to process in a batch')
     parser.add_argument('--learning_rate', type=float, default=2e-3, help='Learning rate')
 
     # It is not necessary to implement the following three params, but it may help training.
-    parser.add_argument('--learning_rate_decay', type=float, default=0.96, help='Learning rate decay fraction')
-    parser.add_argument('--learning_rate_step', type=int, default=500, help='Learning rate step')
+    parser.add_argument('--learning_rate_decay', type=float, default=0.95, help='Learning rate decay fraction')
+    parser.add_argument('--learning_rate_decay_after', type=int, default=1000, help='Learning rate decay starts after number of steps')
+    parser.add_argument('--learning_rate_step', type=int, default=100, help='Learning rate step')
     parser.add_argument('--dropout_keep_prob', type=float, default=1.0, help='Dropout keep probability')
 
     parser.add_argument('--train_steps', type=int, default=1e6, help='Number of training steps')
