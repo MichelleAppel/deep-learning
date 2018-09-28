@@ -24,7 +24,7 @@ import torch.utils.data as data
 
 class TextDataset(data.Dataset):
 
-    def __init__(self, filename, seq_length, newline_to_whitespace=True):
+    def __init__(self, filename, seq_length, newline_to_whitespace=False):
         assert os.path.splitext(filename)[1] == ".txt"
         self._seq_length = seq_length
         self._data = open(filename, 'r').read()

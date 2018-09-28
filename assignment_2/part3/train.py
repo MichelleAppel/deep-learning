@@ -40,8 +40,8 @@ def train(config):
 
     if config.summary:
         # Tensorboard writer
-        writer = SummaryWriter(config.summary_path + config.txt_file[config.txt_file.index('/')+1:] 
-            + '/seq_length_' + str(config.seq_length), 
+        writer = SummaryWriter(
+            os.path.join(config.summary_path, config.txt_file[config.txt_file.index('/')+1:], 'seq_length_' + str(config.seq_length)),
             filename_suffix='.seq_length_' + str(config.seq_length))
 
     # Initialize the device which to run the model on
@@ -124,6 +124,12 @@ def train(config):
                     writer.add_text('target', target_string, step)
                     writer.add_text('output', predicted_string, step)
 
+            if step % config.save_model_every == 0:
+                model_path = os.path.join(config.save_model_dir, config.txt_file[config.txt_file.index('/')+1:])
+                if not os.path.exists(model_path):
+                     os.makedirs(model_path)
+                torch.save(model, os.path.join(model_path, 'step_' + str(step) + '.pt'))
+
         if step > config.train_steps:
             break
 
@@ -151,7 +157,7 @@ if __name__ == "__main__":
 
     # It is not necessary to implement the following three params, but it may help training.
     parser.add_argument('--learning_rate_decay', type=float, default=0.96, help='Learning rate decay fraction')
-    parser.add_argument('--learning_rate_step', type=int, default=5000, help='Learning rate step')
+    parser.add_argument('--learning_rate_step', type=int, default=10000, help='Learning rate step')
     parser.add_argument('--dropout_keep_prob', type=float, default=1.0, help='Dropout keep probability')
 
     parser.add_argument('--train_steps', type=int, default=1e6, help='Number of training steps')
@@ -163,9 +169,10 @@ if __name__ == "__main__":
     parser.add_argument('--print_every', type=int, default=5, help='How often to print training progress')
     parser.add_argument('--sample_every', type=int, default=100, help='How often to sample from the model')
     parser.add_argument('--device', type=str, default="cuda:0", help="Training device 'cpu' or 'cuda:0'")
+    parser.add_argument('--save_model_every', type=int, default=1e5, help="When to save the model")
+    parser.add_argument('--save_model_dir', type=str, default='./model/', help="The directory to save the model in")
 
     config = parser.parse_args()
-    print(config.summary)
 
     # Train the model
     train(config)
