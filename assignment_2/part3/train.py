@@ -169,7 +169,7 @@ if __name__ == "__main__":
     parser.add_argument('--print_every', type=int, default=5, help='How often to print training progress')
     parser.add_argument('--sample_every', type=int, default=100, help='How often to sample from the model')
     parser.add_argument('--device', type=str, default="cuda:0", help="Training device 'cpu' or 'cuda:0'")
-    parser.add_argument('--save_model_every', type=int, default=1e5, help="When to save the model")
+    parser.add_argument('--save_model_every', type=int, default=1e4, help="When to save the model")
     parser.add_argument('--save_model_dir', type=str, default='./model/', help="The directory to save the model in")
 
     config = parser.parse_args()
