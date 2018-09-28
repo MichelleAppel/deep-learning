@@ -48,7 +48,7 @@ def train(config):
     device = torch.device(config.device)
 
     # Initialize the dataset and data loader (note the +1)
-    dataset = TextDataset(config.txt_file, config.seq_length)
+    dataset = TextDataset(config.txt_file, config.seq_length, newline_to_whitespace=config.newline_to_whitespace)
     data_loader = DataLoader(dataset, config.batch_size, num_workers=1)
 
     # Initialize the model that we are going to use
@@ -57,7 +57,7 @@ def train(config):
     # Setup the loss and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=config.learning_rate, momentum=0.9)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, config.learning_rate_step, gamma=1-config.learning_rate_decay) # Learning rate decay
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, config.learning_rate_step, gamma=config.learning_rate_decay) # Learning rate decay
 
     # dropout = nn.Dropout(p=1-config.dropout_keep_prob)
     total_step = 0
@@ -146,6 +146,7 @@ if __name__ == "__main__":
 
     # Model params
     parser.add_argument('--txt_file', type=str, default='data/alice.txt', help="Path to a .txt file to train on")
+    parser.add_argument('--newline_to_whitespace', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=True, help="Replace newlines with whitespace in the txt file")
     parser.add_argument('--seq_length', type=int, default=30, help='Length of an input sequence')
     parser.add_argument('--lstm_num_hidden', type=int, default=128, help='Number of hidden units in the LSTM')
     parser.add_argument('--lstm_num_layers', type=int, default=2, help='Number of LSTM layers in the model')
@@ -157,7 +158,7 @@ if __name__ == "__main__":
 
     # It is not necessary to implement the following three params, but it may help training.
     parser.add_argument('--learning_rate_decay', type=float, default=0.96, help='Learning rate decay fraction')
-    parser.add_argument('--learning_rate_step', type=int, default=10000, help='Learning rate step')
+    parser.add_argument('--learning_rate_step', type=int, default=500, help='Learning rate step')
     parser.add_argument('--dropout_keep_prob', type=float, default=1.0, help='Dropout keep probability')
 
     parser.add_argument('--train_steps', type=int, default=1e6, help='Number of training steps')
