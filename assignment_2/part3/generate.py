@@ -43,7 +43,7 @@ if __name__ == "__main__":
     
     parser.add_argument('--model_file', type=str, default='./model/alice.txt/step_20000.pt', help="Path to the model")
 
-    parser.add_argument('--generate_length', type=int, default=40, help="Amount of characters to generate")
+    parser.add_argument('--generate_length', type=int, default=100, help="Amount of characters to generate")
 
     parser.add_argument('--device', type=str, default="cuda:0", help="Training device 'cpu' or 'cuda:0'")
 

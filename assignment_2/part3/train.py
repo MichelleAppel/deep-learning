@@ -99,9 +99,9 @@ def train(config):
             examples_per_second = config.batch_size/float(t2-t1)
 
             if step % config.print_every == 0:
-                print("[{}] Train Step {:d}/{:04d}, LR = {}, Batch Size = {}, Examples/Sec = {:.2f}, "
+                print("[{}] Epoch {}, Train Step {:d}/{:04d}, LR = {}, Batch Size = {}, Examples/Sec = {:.2f}, "
                     "Accuracy = {:.2f}, Loss = {:.3f}".format(
-                        datetime.now().strftime("%Y-%m-%d %H:%M"), step,
+                        datetime.now().strftime("%Y-%m-%d %H:%M"), epoch, step,
                         int(config.train_steps), optimizer.param_groups[0]['lr'], config.batch_size, examples_per_second,
                         accuracy, loss
                 ))            
@@ -158,9 +158,9 @@ if __name__ == "__main__":
     parser.add_argument('--learning_rate', type=float, default=2e-3, help='Learning rate')
 
     # It is not necessary to implement the following three params, but it may help training.
-    parser.add_argument('--learning_rate_decay', type=float, default=0.95, help='Learning rate decay fraction')
-    parser.add_argument('--learning_rate_decay_after', type=int, default=1000, help='Learning rate decay starts after number of steps')
-    parser.add_argument('--learning_rate_step', type=int, default=100, help='Learning rate step')
+    parser.add_argument('--learning_rate_decay', type=float, default=0.96, help='Learning rate decay fraction')
+    parser.add_argument('--learning_rate_decay_after', type=int, default=5000, help='Learning rate decay starts after number of steps')
+    parser.add_argument('--learning_rate_step', type=int, default=500, help='Learning rate step')
     parser.add_argument('--dropout_keep_prob', type=float, default=1.0, help='Dropout keep probability')
 
     parser.add_argument('--train_steps', type=int, default=1e6, help='Number of training steps')

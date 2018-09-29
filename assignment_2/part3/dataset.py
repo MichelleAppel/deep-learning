@@ -20,15 +20,19 @@ from __future__ import print_function
 import os
 import numpy as np
 import torch.utils.data as data
+import re
 
 class TextDataset(data.Dataset):
 
-    def __init__(self, filename, seq_length, newline_to_whitespace=True):
+    def __init__(self, filename, seq_length, newline_to_whitespace=True, rm_special=False):
         assert os.path.splitext(filename)[1] == ".txt"
         self._seq_length = seq_length
         self._data = open(filename, 'r').read()
         if newline_to_whitespace: # Replace newlines with whitespace
             self._data = self._data.replace("\n", " ")
+        if rm_special: # Remove special chars
+            regex = re.compile('[^a-zA-Z0-9,\.\*\_!?;:\-\ \r\n]+')
+            self._data = re.sub(regex, r'', self._data)
         self._chars = list(sorted(set(self._data)))
         self._data_size, self._vocab_size = len(self._data), len(self._chars)
         print("Initialize dataset with {} characters, {} unique.".format(
@@ -36,7 +40,7 @@ class TextDataset(data.Dataset):
         self._char_to_ix = { ch:i for i,ch in enumerate(self._chars) }
         self._ix_to_char = { i:ch for i,ch in enumerate(self._chars) }
         self._offset = 0
-
+        
     def __getitem__(self, item):
         offset = np.random.randint(0, len(self._data)-self._seq_length-2)
         inputs =  [self._char_to_ix[ch] for ch in self._data[offset:offset+self._seq_length]]
