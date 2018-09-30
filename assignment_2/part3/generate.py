@@ -11,7 +11,7 @@ def generate(config):
 
     model = torch.load(config.model_file) # Load the model
 
-    dataset = TextDataset(config.txt_file, model.seq_length, newline_to_whitespace=config.newline_to_whitespace) # Get vocabulary size
+    dataset = TextDataset(config.txt_file, model.seq_length, newline_to_whitespace=config.newline_to_whitespace, rm_special=config.rm_special) # Get vocabulary size
 
     final_output_idx = torch.LongTensor(config.generate_length).to(device) # Setup final idx tensor
     final_output_idx.zero_() # Set to zero
@@ -40,7 +40,9 @@ if __name__ == "__main__":
 
     parser.add_argument('--txt_file', type=str, default='data/alice.txt', help="Path to a .txt file on which the model was trained")
     parser.add_argument('--newline_to_whitespace', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=True, help="Replace newlines with whitespace in the txt file")
+    parser.add_argument('--rm_special', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=True, help="Replace newlines with whitespace in the txt file")
     
+
     parser.add_argument('--model_file', type=str, default='./model/alice.txt/step_20000.pt', help="Path to the model")
 
     parser.add_argument('--generate_length', type=int, default=100, help="Amount of characters to generate")

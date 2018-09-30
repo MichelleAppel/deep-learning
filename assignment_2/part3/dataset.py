@@ -32,7 +32,7 @@ class TextDataset(data.Dataset):
             self._data = self._data.replace("\n", " ")
         if rm_special: # Remove special chars
             regex = re.compile('[^a-zA-Z0-9,\.\*\_!?;:\-\ \r\n]+')
-            self._data = re.sub(regex, r'', self._data)
+            self._data = re.sub(regex, r'', self._data).lower()
         self._chars = list(sorted(set(self._data)))
         self._data_size, self._vocab_size = len(self._data), len(self._chars)
         print("Initialize dataset with {} characters, {} unique.".format(
