@@ -2,8 +2,10 @@ import os
 import argparse
 
 import torch
+import torch.nn.functional as F
 
 from dataset import TextDataset
+import numpy as np
 
 def generate(config):
 
@@ -28,8 +30,15 @@ def generate(config):
             seq_begin = 0
             seq_end = model.seq_length
 
-        prediction = model(final_output_idx[seq_begin:seq_end].reshape(1,-1)) # The predicted character
-        final_output_idx[idx] = prediction[pred_idx].argmax(dim=1) # Add to final prediction list
+        prediction = model(final_output_idx[seq_begin:seq_end].reshape(1,-1))[pred_idx] # The predicted character
+        probs = F.softmax(prediction, dim=1)
+        distribution = torch.distributions.Categorical(probs / config.temperature)
+
+        # Temperature sampling
+        final_output_idx[idx] = distribution.sample().to(device)[0]
+
+        # Greedy sampling
+        # final_output_idx[idx] = probs.argmax(dim=1) # Add to final prediction list
 
     print(dataset.convert_to_string(final_output_idx)) # Show as string
     
@@ -42,10 +51,11 @@ if __name__ == "__main__":
     parser.add_argument('--newline_to_whitespace', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=True, help="Replace newlines with whitespace in the txt file")
     parser.add_argument('--rm_special', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=True, help="Replace newlines with whitespace in the txt file")
     
+    parser.add_argument('--temperature', type=float, default=0.5, help="The probability by which a character is not-greedy")
 
-    parser.add_argument('--model_file', type=str, default='./model/alice.txt/step_20000.pt', help="Path to the model")
+    parser.add_argument('--model_file', type=str, default='./model/titles.txt/step_275000.pt', help="Path to the model")
 
-    parser.add_argument('--generate_length', type=int, default=100, help="Amount of characters to generate")
+    parser.add_argument('--generate_length', type=int, default=2000, help="Amount of characters to generate")
 
     parser.add_argument('--device', type=str, default="cuda:0", help="Training device 'cpu' or 'cuda:0'")
 

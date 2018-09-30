@@ -156,12 +156,12 @@ if __name__ == "__main__":
     # Training params
     parser.add_argument('--epochs', type=int, default=1000, help='Number of epochs')
     parser.add_argument('--batch_size', type=int, default=64, help='Number of examples to process in a batch')
-    parser.add_argument('--learning_rate', type=float, default=3e-3, help='Learning rate')
+    parser.add_argument('--learning_rate', type=float, default=2e-3, help='Learning rate')
 
     # It is not necessary to implement the following three params, but it may help training.
     parser.add_argument('--learning_rate_decay', type=float, default=0.96, help='Learning rate decay fraction')
-    parser.add_argument('--learning_rate_decay_after', type=int, default=2e5, help='Learning rate decay starts after number of steps')
-    parser.add_argument('--learning_rate_step', type=int, default=5000, help='Learning rate step')
+    parser.add_argument('--learning_rate_decay_after', type=int, default=1e4, help='Learning rate decay starts after number of steps')
+    parser.add_argument('--learning_rate_step', type=int, default=1e3, help='Learning rate step')
     parser.add_argument('--dropout_keep_prob', type=float, default=1.0, help='Dropout keep probability')
 
     parser.add_argument('--train_steps', type=int, default=1e6, help='Number of training steps')
@@ -173,7 +173,7 @@ if __name__ == "__main__":
     parser.add_argument('--print_every', type=int, default=5, help='How often to print training progress')
     parser.add_argument('--sample_every', type=int, default=100, help='How often to sample from the model')
     parser.add_argument('--device', type=str, default="cuda:0", help="Training device 'cpu' or 'cuda:0'")
-    parser.add_argument('--save_model_every', type=int, default=1e4, help="When to save the model")
+    parser.add_argument('--save_model_every', type=int, default=5e3, help="When to save the model")
     parser.add_argument('--save_model_dir', type=str, default='./model/', help="The directory to save the model in")
 
     config = parser.parse_args()
