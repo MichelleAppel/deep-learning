@@ -22,8 +22,6 @@ import torch
 
 import numpy as np
 
-# torch.manual_seed(42)
-
 class TextGenerationModel(nn.Module):
 
     def __init__(self, batch_size, seq_length, vocabulary_size,
@@ -31,11 +29,12 @@ class TextGenerationModel(nn.Module):
 
         super(TextGenerationModel, self).__init__()
 
+        # The params needed in the forward pass
         self.seq_length = seq_length
         self.vocabulary_size = vocabulary_size
         self.device = device
 
-        self.layers = nn.ModuleList().to(device) # the list that is going to contain the lstm layers
+        # The layers
         self.lstm = nn.LSTM(input_size=vocabulary_size, hidden_size=lstm_num_hidden, num_layers=lstm_num_layers, dropout=0).to(device)
         self.linear = nn.Linear(in_features=lstm_num_hidden, out_features=vocabulary_size, bias=True).to(device)
 
@@ -47,8 +46,8 @@ class TextGenerationModel(nn.Module):
         ones = torch.ones(torch.t(x)[0].shape).to(self.device)
         for t, x_t in enumerate(torch.t(x)):
             x_onehot[t].scatter_(1, x_t.reshape(-1,1), ones.reshape(-1,1))
-        x = x_onehot
 
-        output, _ = self.lstm(x)
-        output = self.linear(output)
-        return output
+        # Feed input to the layers
+        lstm_output, _ = self.lstm(x_onehot)
+        linear_output = self.linear(lstm_output)
+        return linear_output

@@ -41,7 +41,7 @@ def train(config):
     if config.summary:
         # Tensorboard writer
         writer = SummaryWriter(
-            os.path.join(config.summary_path, config.txt_file[config.txt_file.index('/')+1:], 'seq_length_' + str(config.seq_length)),
+            os.path.join(config.summary_path, config.txt_file[config.txt_file.rfind('/')+1:], 'seq_length_' + str(config.seq_length)),
             filename_suffix='.seq_length_' + str(config.seq_length))
 
     # Initialize the device which to run the model on
@@ -64,21 +64,27 @@ def train(config):
 
     for epoch in range(config.epochs):
         for step, (batch_inputs, batch_targets) in enumerate(data_loader):
-
+            # Counter
             total_step += 1
             step = total_step
+
             # Only for time measurement of step through network
             t1 = time.time()
 
-            batch_inputs = torch.t(torch.stack(batch_inputs)).to(device) # Transform input to tensor
-            # batch_inputs = dropout(batch_inputs) # Error: Floating point exception (core dumped)
+            # Transform input to tensor
+            batch_inputs = torch.t(torch.stack(batch_inputs)).to(device) 
 
-            optimizer.zero_grad() # Set gradients to zero
+            # Set gradients to zero
+            optimizer.zero_grad() 
+
+            # Start learning rate decay after certain amount of steps
             if step > config.learning_rate_decay_after:
-                scheduler.step() # Learning rate decay
+                scheduler.step() 
 
-            prediction = model(batch_inputs) # Give predictions
+            # Predict sequence
+            prediction = model(batch_inputs) 
 
+            # Calculate loss and accuracy
             loss = 0
             accuracy = 0
             for prediction_t, target_t in zip(prediction, batch_targets):
@@ -87,10 +93,12 @@ def train(config):
                 accuracy += float(torch.sum(prediction_t.argmax(dim=1)==target_t))/config.batch_size # Accuracy
             accuracy = accuracy/config.seq_length
 
-            if config.summary: # For tensorboard summary
+            # Tensorboard summary
+            if config.summary:
                 writer.add_scalar('loss', loss, step)
                 writer.add_scalar('accuracy', accuracy, step)
 
+            # The optimization process
             loss.backward() # Perform backward pass
             optimizer.step() # Update weights
 
@@ -98,6 +106,7 @@ def train(config):
             t2 = time.time()
             examples_per_second = config.batch_size/float(t2-t1)
 
+            # Print progress
             if step % config.print_every == 0:
                 print("[{}] Epoch {}, Train Step {:d}/{:04d}, LR = {}, Batch Size = {}, Examples/Sec = {:.2f}, "
                     "Accuracy = {:.2f}, Loss = {:.3f}".format(
@@ -106,6 +115,7 @@ def train(config):
                         accuracy, loss
                 ))            
 
+            # Show some predictions every certain amount of steps
             if step % config.sample_every == 0:
                 prediction_idx = torch.t(torch.stack([p_t.argmax(dim=1) for p_t in prediction]))
                 batch_targets = torch.t(torch.stack(batch_targets))
@@ -120,13 +130,15 @@ def train(config):
                 print('PRED:  ', predicted_string)
                 print()
 
+                # And add them to the summary if indicated
                 if config.summary:
                     writer.add_text('input', input_string, step)
                     writer.add_text('target', target_string, step)
                     writer.add_text('output', predicted_string, step)
 
+            # Save the model every certain amount of steps
             if step % config.save_model_every == 0:
-                model_path = os.path.join(config.save_model_dir, config.txt_file[config.txt_file.index('/')+1:])
+                model_path = os.path.join(config.save_model_dir, config.txt_file[config.txt_file.rfind('/')+1:])
                 if not os.path.exists(model_path):
                      os.makedirs(model_path)
                 torch.save(model, os.path.join(model_path, 'step_' + str(step) + '.pt'))
@@ -160,8 +172,8 @@ if __name__ == "__main__":
 
     # It is not necessary to implement the following three params, but it may help training.
     parser.add_argument('--learning_rate_decay', type=float, default=0.96, help='Learning rate decay fraction')
-    parser.add_argument('--learning_rate_decay_after', type=int, default=1e4, help='Learning rate decay starts after number of steps')
-    parser.add_argument('--learning_rate_step', type=int, default=1e3, help='Learning rate step')
+    parser.add_argument('--learning_rate_decay_after', type=int, default=5e4, help='Learning rate decay starts after number of steps')
+    parser.add_argument('--learning_rate_step', type=int, default=2e3, help='Learning rate step')
     parser.add_argument('--dropout_keep_prob', type=float, default=1.0, help='Dropout keep probability')
 
     parser.add_argument('--train_steps', type=int, default=1e6, help='Number of training steps')
