@@ -32,7 +32,6 @@ from dataset import PalindromeDataset
 from vanilla_rnn import VanillaRNN
 from lstm import LSTM
 
-# You may want to look into tensorboardX for logging
 from tensorboardX import SummaryWriter
 
 ################################################################################
@@ -41,7 +40,8 @@ def train(config):
 
     assert config.model_type in ('RNN', 'LSTM')
 
-    writer = SummaryWriter('./writer/'+config.model_type+'/input_length_' + str(config.input_length), 
+    # Make summary
+    writer = SummaryWriter('./summaries/'+config.model_type+'/input_length_' + str(config.input_length), 
         filename_suffix='.input_length_' + str(config.input_length))
 
     # Initialize the device which to run the model on
@@ -49,9 +49,9 @@ def train(config):
 
     # Initialize the model that we are going to use
     if config.model_type == 'RNN':
-        model = VanillaRNN(config.input_length, config.input_dim, config.num_hidden, config.num_classes, config.batch_size)
+        model = VanillaRNN(config.input_length, config.input_dim, config.num_hidden, config.num_classes, config.batch_size, device=device)
     elif config.model_type == 'LSTM':
-        model = LSTM(config.input_length, config.input_dim, config.num_hidden, config.num_classes, config.batch_size)
+        model = LSTM(config.input_length, config.input_dim, config.num_hidden, config.num_classes, config.batch_size, device=device)
 
     # Initialize the dataset and data loader (note the +1)
     dataset = PalindromeDataset(config.input_length+1)
@@ -62,33 +62,46 @@ def train(config):
     optimizer = optim.SGD(model.parameters(), lr=config.learning_rate, momentum=0.9)
 
     for step, (batch_inputs, batch_targets) in enumerate(data_loader):
+
         # Only for time measurement of step through network
         t1 = time.time()
 
+        # Set gradients to zero
         optimizer.zero_grad()
+
+        # Predict the last number of the palindrome
         prediction = model(batch_inputs)
 
         ############################################################################
         # QUESTION: what happens here and why?
+        # This function clips the norm of the gradients by scaling the gradients down 
+        # in order to reduce the norm to an acceptable level such that the update
+        # doesn't get too large. 
         ############################################################################
         torch.nn.utils.clip_grad_norm(model.parameters(), max_norm=config.max_norm)
         ############################################################################
 
+        # Move to GPU
+        batch_targets = batch_targets.to(device)
+
+        # Calculate loss and accuracy
         loss = criterion(prediction, batch_targets)
         accuracy = float(torch.sum(prediction.argmax(dim=1)==batch_targets))/config.batch_size
 
+        # Tensorboard summary
         writer.add_scalar('loss', loss, step)
         writer.add_scalar('accuracy', accuracy, step)
 
-        loss.backward()
-        optimizer.step()
+        # Update of the network
+        loss.backward() # Perform backward pass
+        optimizer.step() # Update weights
 
         # Just for time measurement
         t2 = time.time()
         examples_per_second = config.batch_size/float(t2-t1)
 
+        # Print progress
         if step % 10 == 0:
-
             print("[{}] Train Step {:04d}/{:04d}, Batch Size = {}, Examples/Sec = {:.2f}, "
                   "Accuracy = {:.2f}, Loss = {:.3f}".format(
                     datetime.now().strftime("%Y-%m-%d %H:%M"), step,
@@ -97,8 +110,6 @@ def train(config):
             ))
 
         if step == config.train_steps:
-            # If you receive a PyTorch data-loader error, check this bug report:
-            # https://github.com/pytorch/pytorch/pull/9655
             break
 
     print('Done training.')
@@ -125,5 +136,6 @@ if __name__ == "__main__":
     parser.add_argument('--device', type=str, default="cuda:0", help="Training device 'cpu' or 'cuda:0'")
 
     config = parser.parse_args()
+    
     # Train the model
     train(config)

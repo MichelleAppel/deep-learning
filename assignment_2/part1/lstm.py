@@ -25,42 +25,44 @@ import torch.nn as nn
 
 class LSTM(nn.Module):
 
-    def __init__(self, seq_length, input_dim, num_hidden, num_classes, batch_size, device='cpu'):
+    def __init__(self, seq_length, input_dim, num_hidden, num_classes, batch_size, device='cuda:0'):
         super(LSTM, self).__init__()
+
+        self.device = device
 
         self.num_hidden = num_hidden
         self.batch_size = batch_size
 
-        self.W_gx = nn.Parameter(torch.randn(input_dim , num_hidden ))  # modulation gate input weight matrix
-        self.W_gh = nn.Parameter(torch.randn(num_hidden , num_hidden )) # modulation gate hidden weight matrix
+        self.W_gx = nn.Parameter(torch.randn(input_dim, num_hidden).to(self.device))  # modulation gate input weight matrix
+        self.W_gh = nn.Parameter(torch.randn(num_hidden, num_hidden).to(self.device)) # modulation gate hidden weight matrix
 
-        self.W_ix = nn.Parameter(torch.randn(input_dim , num_hidden ))  # input gate input weight matrix
-        self.W_ih = nn.Parameter(torch.randn(num_hidden , num_hidden )) # input gate hidden weight matrix
+        self.W_ix = nn.Parameter(torch.randn(input_dim, num_hidden).to(self.device))  # input gate input weight matrix
+        self.W_ih = nn.Parameter(torch.randn(num_hidden, num_hidden).to(self.device)) # input gate hidden weight matrix
 
-        self.W_fx = nn.Parameter(torch.randn(input_dim , num_hidden ))  # forget gate input weight matrix
-        self.W_fh = nn.Parameter(torch.randn(num_hidden , num_hidden )) # forget gate hidden weight matrix
+        self.W_fx = nn.Parameter(torch.randn(input_dim, num_hidden).to(self.device))  # forget gate input weight matrix
+        self.W_fh = nn.Parameter(torch.randn(num_hidden, num_hidden).to(self.device)) # forget gate hidden weight matrix
                      
-        self.W_ox = nn.Parameter(torch.randn(input_dim , num_hidden ))  # output gate input weight matrix
-        self.W_oh = nn.Parameter(torch.randn(num_hidden , num_hidden )) # output gate hidden weight matrix
+        self.W_ox = nn.Parameter(torch.randn(input_dim, num_hidden).to(self.device))  # output gate input weight matrix
+        self.W_oh = nn.Parameter(torch.randn(num_hidden, num_hidden).to(self.device)) # output gate hidden weight matrix
 
-        self.W_px = nn.Parameter(torch.randn(input_dim , num_classes ))  # prediction gate input weight matrix
-        self.W_ph = nn.Parameter(torch.randn(num_hidden , num_classes )) # prediction gate hidden weight matrix
+        self.W_px = nn.Parameter(torch.randn(input_dim, num_classes).to(self.device))  # prediction gate input weight matrix
+        self.W_ph = nn.Parameter(torch.randn(num_hidden, num_classes).to(self.device)) # prediction gate hidden weight matrix
 
-        self.b_g = nn.Parameter(torch.zeros(num_hidden )) # modulation bias
-        self.b_i = nn.Parameter(torch.zeros(num_hidden )) # input bias
-        self.b_f = nn.Parameter(torch.zeros(num_hidden )) # forget bias
-        self.b_o = nn.Parameter(torch.zeros(num_hidden )) # output bias
-        self.b_p = nn.Parameter(torch.zeros(num_classes)) # prediction bias
+        self.b_g = nn.Parameter(torch.zeros(num_hidden ).to(self.device)) # modulation bias
+        self.b_i = nn.Parameter(torch.zeros(num_hidden ).to(self.device)) # input bias
+        self.b_f = nn.Parameter(torch.zeros(num_hidden ).to(self.device)) # forget bias
+        self.b_o = nn.Parameter(torch.zeros(num_hidden ).to(self.device)) # output bias
+        self.b_p = nn.Parameter(torch.zeros(num_classes).to(self.device)) # prediction bias
 
-        self.tanh = nn.Tanh() # tanh module
-        self.sigmoid = nn.Sigmoid() # softmax module
-        self.softmax = nn.Softmax(dim=1) # softmax module
+        self.tanh = nn.Tanh().to(self.device) # tanh module
+        self.sigmoid = nn.Sigmoid().to(self.device) # softmax module
+        self.softmax = nn.Softmax(dim=1).to(self.device) # softmax module
 
     def forward(self, x):
-        h = torch.zeros(self.batch_size, self.num_hidden) # last hidden state
-        c = torch.zeros(self.batch_size, self.num_hidden)
+        h = torch.zeros(self.batch_size, self.num_hidden).to(self.device) # last hidden state
+        c = torch.zeros(self.batch_size, self.num_hidden).to(self.device) # last cell state
 
-        for x_t in torch.t(x): # loop through sequence
+        for x_t in torch.t(x).to(self.device): # loop through sequence
             x_t = x_t.reshape(-1,1) # reshape input at timestep t
             g_t = self.tanh(x_t @ self.W_gx + h @ self.W_gh + self.b_g) # modulation (equation (4))
             i_t = self.sigmoid(x_t @ self.W_ix + h @ self.W_ih + self.b_i) # input (equation (5))

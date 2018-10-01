@@ -25,25 +25,30 @@ import torch.nn as nn
 
 class VanillaRNN(nn.Module):
 
-    def __init__(self, seq_length, input_dim, num_hidden, num_classes, batch_size, device='cpu'):
+    def __init__(self, seq_length, input_dim, num_hidden, num_classes, batch_size, device='cuda:0'):
         super(VanillaRNN, self).__init__()
+
+        self.device = torch.device(device)
+
         self.num_hidden = num_hidden
         self.batch_size = batch_size
 
-        self.W_hx = nn.Parameter(torch.randn(input_dim , num_hidden )) # input-to-hidden weight matrix
-        self.W_hh = nn.Parameter(torch.randn(num_hidden, num_hidden )) # hidden-to-hidden weight matrix
-        self.W_ph = nn.Parameter(torch.randn(num_hidden, num_classes)) # hidden-to-output weight matrix
+        self.W_hx = nn.Parameter(torch.randn(input_dim , num_hidden ).to(self.device)) # input-to-hidden weight matrix
+        self.W_hh = nn.Parameter(torch.randn(num_hidden, num_hidden ).to(self.device)) # hidden-to-hidden weight matrix
+        self.W_ph = nn.Parameter(torch.randn(num_hidden, num_classes).to(self.device)) # hidden-to-output weight matrix
 
-        self.b_h = nn.Parameter(torch.zeros(num_hidden )) # hidden bias
-        self.b_p = nn.Parameter(torch.zeros(num_classes)) # output bias
+        self.b_h = nn.Parameter(torch.zeros(num_hidden ).to(self.device)) # hidden bias
+        self.b_p = nn.Parameter(torch.zeros(num_classes).to(self.device)) # output bias
 
-        self.tanh = nn.Tanh()            # tanh module
-        self.softmax = nn.Softmax(dim=1) # softmax module
+        self.tanh = nn.Tanh().to(self.device)            # tanh module
+        self.softmax = nn.Softmax(dim=1).to(self.device) # softmax module
+
+        print('ieks')
 
     def forward(self, x):
-        h = torch.zeros(self.batch_size, self.num_hidden) # last hidden state
+        h = torch.zeros(self.batch_size, self.num_hidden).to(self.device) # last hidden state
 
-        for x_t in torch.t(x): # loop through sequence
+        for x_t in torch.t(x).to(self.device): # loop through sequence
             x_t = x_t.reshape(-1,1) # reshape input at timestep t
             h_t = self.tanh(x_t @ self.W_hx + h @ self.W_hh + self.b_h) # hidden state at timestep t (equation (1))
             h = h_t # store last hidden state
