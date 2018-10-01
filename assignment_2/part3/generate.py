@@ -39,11 +39,11 @@ def generate(config):
 
         # The predicted character
         prediction = model(final_output_idx[seq_begin:seq_end].reshape(1,-1))[pred_idx] # Tensor containing model output
-        probs = F.softmax(prediction, dim=1) # Transform to probabilities
+        probs = F.softmax(prediction / config.temperature, dim=1) # Transform to probabilities
 
         if config.temperature_sampling:
             # Temperature sampling
-            distribution = torch.distributions.Categorical(probs / config.temperature) # Make a distribution to sample from
+            distribution = torch.distributions.Categorical(probs) # Make a distribution to sample from
             final_output_idx[idx] = distribution.sample().to(device)[0] # Sample with probability from the distribution
         else:
             # Greedy sampling
@@ -58,7 +58,7 @@ def generate(config):
         output_path = os.path.join('output', config.txt_file[config.txt_file.rfind('/')+1:])
         if not os.path.exists(output_path):
             os.makedirs(output_path)
-        text_file = open(os.path.join(output_path, str(time.time())+'.txt' ) , "w")
+        text_file = open(os.path.join(output_path, config.model_file[config.model_file.rfind('/')+1:config.model_file.rfind('.')] + '.txt' ) , "w")
         text_file.write(output_string)
         text_file.close()
     
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     # Parse training configuration
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--model_file', type=str, default='model/alice.txt/step_2000.pt', help="Path to the model")
+    parser.add_argument('--model_file', type=str, default='./model/alice.txt/step_5000.pt', help="Path to the model")
     parser.add_argument('--txt_file', type=str, default='data/alice.txt', help="Path to a .txt file on which the model was trained")
     parser.add_argument('--newline_to_whitespace', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=True, help="Replace newlines with whitespace in the txt file")
     parser.add_argument('--rm_special', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=True, help="Replace newlines with whitespace in the txt file")
