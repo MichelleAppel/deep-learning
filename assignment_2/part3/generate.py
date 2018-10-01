@@ -49,9 +49,11 @@ def generate(config):
             # Greedy sampling
             final_output_idx[idx] = probs.argmax(dim=1) # Add to final prediction list
 
-    output_string = dataset.convert_to_string(final_output_idx) # As string
+    # As string
+    output_string = dataset.convert_to_string(final_output_idx)
     print(output_string)
 
+    # Save as txt file
     if config.save_output:
         output_path = os.path.join('output', config.txt_file[config.txt_file.rfind('/')+1:])
         if not os.path.exists(output_path):
