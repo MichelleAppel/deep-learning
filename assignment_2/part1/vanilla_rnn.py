@@ -55,5 +55,5 @@ class VanillaRNN(nn.Module):
 
             p_t = h_t @ self.W_ph + self.b_p # output value (equation (2))
 
-        y_p = self.softmax(p_t) # softmax
+        # y_p = self.softmax(p_t) # softmax, already included in cross entropy loss apparently 
         return p_t

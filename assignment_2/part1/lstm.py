@@ -76,5 +76,5 @@ class LSTM(nn.Module):
             h = h_t # store last hidden state
 
         p_t = h_t @ self.W_ph + self.b_p # prediction (equation (10))
-        y_t = self.softmax(p_t) # softmax (equation (11))
-        return y_t
+        # y_t = self.softmax(p_t) # softmax (equation (11)) already included in cross entropy loss apparently 
+        return p_t
