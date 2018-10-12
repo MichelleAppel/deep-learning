@@ -119,7 +119,7 @@ def train(dataloader, discriminator, generator, optimizer_G, optimizer_D):
             d_loss.backward() # Perform backward pass
             optimizer_D.step() # Update weights
 
-            # Print progress
+            # Print progress test
             if i % 10 == 0:
                 print("Epoch {}, Train Step {:03d}, Batch Size = {}, "
                     "G_loss = {:.3f}, D_loss = {:.3f}".format(
