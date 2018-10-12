@@ -79,7 +79,7 @@ class Discriminator(nn.Module):
 def train(dataloader, discriminator, generator, optimizer_G, optimizer_D):
     if args.summary:
         # Tensorboard writer
-        writer = SummaryWriter(os.path.join('output', 'gan', 'summary'))
+        writer = SummaryWriter(os.path.join('output', 'gan', 'summary', args.model_name))
 
     adversarial_loss = torch.nn.BCELoss()
 
@@ -140,13 +140,13 @@ def train(dataloader, discriminator, generator, optimizer_G, optimizer_D):
                 # filename, number of rows, normalize) to save the generated
                 # images, e.g.:
 
-                save_image(g[:25].view(25, 1, 28, 28), os.path.join('output', 'gan', 'images', '{}.png').format(batches_done), nrow=5, normalize=True)
+                save_image(g[:25].view(25, 1, 28, 28), os.path.join('output', 'gan', 'images', args.model_name, '{}.png').format(batches_done), nrow=5, normalize=True)
 
                 
 def main():
     # create output image directory
     path = os.path.join('output', 'gan')
-    os.makedirs(os.path.join(path, 'images'), exist_ok=True)
+    os.makedirs(os.path.join(path, 'images', args.model_name), exist_ok=True)
 
     # load data
     dataloader = torch.utils.data.DataLoader(
@@ -167,7 +167,7 @@ def main():
     train(dataloader, discriminator, generator, optimizer_G, optimizer_D)
 
     # save generator
-    torch.save(generator.state_dict(), os.path.join(path, "mnist_generator.pt"))
+    torch.save(generator.state_dict(), os.path.join(path, args.model_name + '.pt'))
 
 
 if __name__ == "__main__":
@@ -184,6 +184,8 @@ if __name__ == "__main__":
                         help='save every SAVE_INTERVAL iterations')
     parser.add_argument('--summary', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=True, 
                         help='Make summary')
+    parser.add_argument('--model_name', type=str, default='gan_1d',
+                        help='dir to save stuff')                        
     args = parser.parse_args()
 
     main()
