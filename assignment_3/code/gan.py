@@ -29,24 +29,24 @@ class Generator(nn.Module):
         #   Linear 1024 -> 768
         #   Output non-linearity
 
-        self.fc1 = nn.Linear(args.latent_dim, 128)
-        self.leakyReLU = nn.LeakyReLU(0.2)
-        self.fc2 = nn.Linear(128, 256)
-        self.bnorm2 = nn.BatchNorm1d(256)
-        self.fc3 = nn.Linear(256, 512)
-        self.bnorm3 = nn.BatchNorm1d(512)
-        self.fc4 = nn.Linear(512, 1024)
-        self.bnorm4 = nn.BatchNorm1d(1024)
-        self.fc5 = nn.Linear(1024, 784)
-        self.tanh = nn.Tanh()
+        self.layers = nn.Sequential(
+            nn.Linear(args.latent_dim, 128),
+            nn.LeakyReLU(0.2),
+            nn.Linear(128, 256),
+            nn.BatchNorm1d(256),
+            nn.LeakyReLU(0.2),
+            nn.Linear(256, 512),
+            nn.BatchNorm1d(512),
+            nn.LeakyReLU(0.2),
+            nn.Linear(512, 1024),
+            nn.BatchNorm1d(1024),
+            nn.LeakyReLU(0.2),
+            nn.Linear(1024, 784),
+            nn.Tanh()
+        )
 
     def forward(self, z):
-        # Generate images from z
-        h1 = self.leakyReLU(self.fc1(z))
-        h2 = self.leakyReLU(self.bnorm2(self.fc2(h1)))
-        h3 = self.leakyReLU(self.bnorm3(self.fc3(h2)))
-        h4 = self.leakyReLU(self.bnorm4(self.fc4(h3)))
-        return self.tanh(self.fc5(h4))
+        return self.layers(z)
 
 
 class Discriminator(nn.Module):
@@ -62,18 +62,18 @@ class Discriminator(nn.Module):
         #   Linear 256 -> 1
         #   Output non-linearity
 
-        self.fc1 = nn.Linear(784, 512)
-        self.fc2 = nn.Linear(512, 256)
-        self.fc3 = nn.Linear(256, 1)
-
-        self.leakyReLU = nn.LeakyReLU(0.2)
-        self.sigmoid = nn.Sigmoid()
+        self.layers = nn.Sequential(
+            nn.Linear(784, 512),
+            nn.LeakyReLU(0.2),
+            nn.Linear(512, 256),
+            nn.LeakyReLU(0.2),
+            nn.Linear(256, 1),
+            nn.Sigmoid()
+        )
 
     def forward(self, img):
         # return discriminator score for img
-        h1 = self.leakyReLU(self.fc1(img))
-        h2 = self.leakyReLU(self.fc2(h1))
-        return self.sigmoid(self.fc3(h2))
+        return self.layers(img)
 
 
 def train(dataloader, discriminator, generator, optimizer_G, optimizer_D):
